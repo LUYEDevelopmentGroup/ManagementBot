@@ -16,7 +16,7 @@ namespace CQ2IOT_HOST
         private static string host;
         private static long me_qq;
         private static string key;
-        private static string keyword;
+        private static string keyword = "";
         private static pThreadPool pool;
 
         private static void Main(string[] args)
@@ -77,7 +77,7 @@ namespace CQ2IOT_HOST
                     pool.onWorkloadStartProcess += startwork;
                     pool.onWorkloadStopProcess += stopwork;
                     logger("MainThread", "Events registered.", ConsoleColor.Black, ConsoleColor.Green);
-                    MainHolder.INIT();
+                    MainHolder.INIT(config);
                     //string xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><msg serviceID=\"35\" templateID=\"1\" action=\"viewMultiMsg\" brief=\"[聊天记录]\" m_resid=\"y0oBW4IOb1T2mMOQXiMI9tajqUkTEioFVMFc66YCia2fQEx2+Sp1Bogtcn80e6R+\" m_fileName=\"6858932750478640422\" tSum=\"34\" sourceMsgId=\"0\" url=\"\" flag=\"3\" adverSign=\"0\" multiMsgFlag=\"0\"><item layout=\"1\" advertiser_id=\"0\" aid=\"0\"><title size=\"34\" maxLines=\"2\" lineSpace=\"12\">群聊的聊天记录</title><title size=\"26\" color=\"#777777\" maxLines=\"4\" lineSpace=\"12\">古小艺:  《迷惑行为》新增1个影像</title><title size=\"26\" color=\"#777777\" maxLines=\"4\" lineSpace=\"12\">柠檬味的海鲜龙:  嗯呢</title><title size=\"26\" color=\"#777777\" maxLines=\"4\" lineSpace=\"12\">一只鸡蛋:  新的机器人核心功能已经快移植好了\n现在是离线状态\n这几天要辛苦大家手动处理这些…</ title >< title size =\"26\" color=\"#777777\" maxLines=\"4\" lineSpace=\"12\">呆 萌呆萌瓜:  ohhhhhhh</title><hr hidden=\"false\" style=\"0\" /><summary size=\"26\" color=\"#777777\">查看34条转发消息</summary></item><source name=\"聊天记录\" icon=\"\" action=\"\" appid=\"-1\" /></msg>";
                     //api.sendXmlMessage(417944217, xml, MsgType.GROUP);
                     //Console.Title = "ManageBot By Developer_ken - Standby";
