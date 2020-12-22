@@ -196,6 +196,19 @@ namespace tech.msgp.groupmanager.Code
                                     MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Done.");
                                 }
                                 break;
+                            case "#cow":
+                                {
+                                    if (long.TryParse(cmd[1], out long w_qq))
+                                    {
+                                        int wcount = DataBase.me.getQQWarnCount(w_qq);
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, w_qq + "> 共" + wcount + "次");
+                                    }
+                                    else
+                                    {
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "请给出查询对象QQ");
+                                    }
+                                }
+                                break;
                             case "#warn":
                             case "#警告":
                                 {
@@ -219,7 +232,7 @@ namespace tech.msgp.groupmanager.Code
                                     }
                                     string eviid = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now).ToString();
 
-                                    if (ats.Count < 0)
+                                    if (ats.Count <= 0)
                                     {
                                         //考虑到不方便at的情况，使用QQ号
                                         if (long.TryParse(cmd[1], out long w_qq))
