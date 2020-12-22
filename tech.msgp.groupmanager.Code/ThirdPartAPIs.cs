@@ -1,0 +1,114 @@
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.IO;
+using System.Net;
+
+namespace tech.msgp.groupmanager.Code
+{
+    public partial class ThirdPartAPIs
+    {
+        public static string _get(string url)
+        {
+            try
+            {
+                string retString = string.Empty;
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.ContentType = "application/json";
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream myResponseStream = response.GetResponseStream();
+                StreamReader streamReader = new StreamReader(myResponseStream);
+                retString = streamReader.ReadToEnd();
+                streamReader.Close();
+                myResponseStream.Close();
+                return retString;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        public static string _get_with_cookies(string url, CookieContainer cookies)
+        {
+            try
+            {
+                string retString = string.Empty;
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                //request.ContentType = "application/json";
+                request.CookieContainer = cookies;
+                //request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36";
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream myResponseStream = response.GetResponseStream();
+                StreamReader streamReader = new StreamReader(myResponseStream);
+                retString = streamReader.ReadToEnd();
+                streamReader.Close();
+                myResponseStream.Close();
+                return retString;
+            }
+            catch (Exception)
+            {
+                //HttpWebResponse response = (HttpWebResponse)ex.
+                return "";
+            }
+        }
+
+        public static int getQQLevel(long qq, int retry = 0)
+        {
+            return -1;
+            /*
+            try
+            {
+                CookieContainer cookies = new CookieContainer();
+                CookieCollection col = MainHolder.session.get// MainHolder.cqapi.GetCookieCollection("https://h5.vip.qq.com");
+                foreach (Cookie c in col)
+                {
+                    cookies.Add(new Uri("https://h5.vip.qq.com/"), c);
+                }
+                string r = _get_with_cookies("http://h5.vip.qq.com/p/mc/cardv2/other?_wv=1031&platform=1&qq=" + qq + "&adtag=geren&aid=mvip.pingtai.mobileqq.androidziliaoka.fromqita", cookies);
+                int sindex = r.IndexOf("<p><small>LV</small>") + 20;
+                string data = r.Substring(sindex);
+                int eindex = data.IndexOf("</p>");
+                data = data.Substring(0, eindex);
+                return int.Parse(data);
+            }
+            catch
+            {
+                if (retry > 0) return getQQLevel(qq, retry - 1);
+                else return -1;
+            }
+            */
+        }
+
+        public static string getMojangUUID(string uname)
+        {
+            try
+            {
+                string ww = _get("https://api.mojang.com/users/profiles/minecraft/" + uname);
+                JObject jb1 = (JObject)JsonConvert.DeserializeObject(ww);
+                return jb1.Value<string>("id");
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public static string getNoSlashMCUUID(string uname, out bool isMojang)
+        {
+            string mojanguuid = getMojangUUID(uname);
+            if (mojanguuid != null && mojanguuid.Length > 2)
+            {
+                isMojang = true;
+                return mojanguuid;
+            }
+            isMojang = false;
+            return Guid.NewGuid().ToString().Replace("-", "");
+            //return _get("http://192.168.1.7:1551/api/uuid.php?uname=" + uname);
+        }
+    }
+}
