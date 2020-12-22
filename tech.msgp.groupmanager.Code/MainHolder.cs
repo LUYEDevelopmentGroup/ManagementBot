@@ -19,12 +19,10 @@ namespace tech.msgp.groupmanager.Code
         public static BiliDanmakuProcessor bilidmkproc;
         public static List<long> issending = new List<long>();
         public static TCPMessageServer tms;
-        //public static HTTPServer hpserver;
         public static int MsgCount;
         public static DiscordAPI.WebAPI disca;
         public static List<long> friends;
         public static pThreadPool pool;
-        //public static Dictionary<int,long> howtocontact;
         public static MiraiHttpSession session;
 
         public static logger_ logger;
