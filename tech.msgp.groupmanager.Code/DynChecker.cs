@@ -68,7 +68,7 @@ namespace tech.msgp.groupmanager.Code
                                 continue;
                             }
 
-                            if (dc.dynamic.Contains("$NO_BRODCAST$")) continue; // 不推送指令
+                            if (dc.dynamic.Contains("$Silent$")) continue; // 不推送指令
 
                             switch (dc.type)
                             {
