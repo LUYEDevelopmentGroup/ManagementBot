@@ -1,6 +1,7 @@
 ﻿using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -20,9 +21,11 @@ namespace tech.msgp.groupmanager.Code
             {
                 List<long> groups = DataBase.me.listGroup();
                 bool success = true;
+                Random rand = new Random();
                 foreach (long gpid in groups)
                 {
                     success = success & SendToGroup(gpid, message);
+                    Thread.Sleep(rand.Next(500,1500));
                 }
                 return success;
             }
@@ -43,9 +46,11 @@ namespace tech.msgp.groupmanager.Code
             {
                 List<long> groups = DataBase.me.listAdminGroup();
                 bool success = true;
+                Random rand = new Random();
                 foreach (long gpid in groups)
                 {
                     success = success & SendToGroup(gpid, message);
+                    Thread.Sleep(rand.Next(500, 1500));
                 }
                 return success;
             }
@@ -91,9 +96,11 @@ namespace tech.msgp.groupmanager.Code
         {
             List<long> groups = DataBase.me.getCrewGroup();
             bool success = true;
+            Random rand = new Random();
             foreach (long gpid in groups)
             {
                 success &= SendToGroup(gpid, message);
+                Thread.Sleep(rand.Next(500, 1500));
             }
             return success;
         }
