@@ -53,6 +53,7 @@ namespace tech.msgp.groupmanager.Code
                     })).Start();
                     gbcounter++;
                 }
+                bool atall = (DateTime.Now.Hour < 11 && DateTime.Now.Hour > 6);
                 foreach (BiliAPI.BiliSpaceDynamic dyn in MainHolder.dynamics)
                 {
                     try
@@ -67,6 +68,8 @@ namespace tech.msgp.groupmanager.Code
                                 continue;
                             }
 
+                            if (dc.dynamic.Contains("$NO_BRODCAST$")) continue; // 不推送指令
+
                             switch (dc.type)
                             {
                                 case 1://普通动态
@@ -76,13 +79,12 @@ namespace tech.msgp.groupmanager.Code
                                     {
                                         break; //如果是转发的直播，分出去单独处理
                                     }
-
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, new AtAllMessage());
+                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
                                     break;
                                 case 256://音频
                                     break;
                                 case 8://视频
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", new AtAllMessage());
+                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>"));
                                     break;
                                 case 4200://直播
                                     break;
@@ -163,7 +165,7 @@ namespace tech.msgp.groupmanager.Code
                         }
                         else
                         {
-                            MainHolder.broadcaster.SendToAnEgg("FANLIST_EMPTY_MESSAGE\n" + fanlist);
+                            MainHolder.broadcaster.SendToAnEgg("FANLIST_EMPTY_MESSAGE\n");
                         }
                     }
                 }

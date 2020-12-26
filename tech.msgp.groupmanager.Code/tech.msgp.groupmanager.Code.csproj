@@ -27,4 +27,8 @@
     <ProjectReference Include="..\MinecraftClient\MinecraftClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.Targets" Version="3.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>

@@ -20,5 +20,9 @@
   <ItemGroup>
     <ProjectReference Include="..\tech.msgp.groupmanager.Code\tech.msgp.groupmanager.Code.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.Targets" Version="3.0.0" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>
