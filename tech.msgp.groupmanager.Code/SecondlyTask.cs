@@ -99,11 +99,11 @@ namespace tech.msgp.groupmanager.Code
                 {
                     if (MainHolder.bilidmkproc.blr.manage.banUID(uid, 720))
                     {
-                        log += "#" + uid + " -> 自动封禁 √";
+                        log += "#" + uid + " -> 自动封禁 √\n";
                     }
                     else
                     {
-                        log += "#" + uid + " -> 自动封禁 E";
+                        log += "#" + uid + " -> 自动封禁 E\n";
                     }
                 }
                 else
@@ -112,16 +112,16 @@ namespace tech.msgp.groupmanager.Code
                     MainHolder.bilidmkproc.blr.manage.debanBID(bbu.id);
                     if (MainHolder.bilidmkproc.blr.manage.banUID(uid, 720))
                     {
-                        log += bbu.uname + "#" + uid + " -> 自动续费 √";
+                        log += bbu.uname + "#" + uid + " -> 自动续费 √\n";
                     }
                     else
                     {
-                        log += bbu.uname + "#" + uid + " -> 自动续费 E";
+                        log += bbu.uname + "#" + uid + " -> 自动续费 E\n";
                     }
                 }
                 else
                 {
-                    log += bbu.uname + "#" + uid + " -> 无需续费(" + (bbu.endtime - DateTime.Now).TotalHours + "h) ×";
+                    log += bbu.uname + "#" + uid + " -> 无需续费(" + (bbu.endtime - DateTime.Now).TotalHours + "h) ×\n";
                 }
             }
             MainHolder.broadcaster.BroadcastToAdminGroup("[直播间禁言自动续费]<试运行>\n" + log);
