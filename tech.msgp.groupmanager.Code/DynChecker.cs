@@ -68,28 +68,49 @@ namespace tech.msgp.groupmanager.Code
                                 continue;
                             }
 
-                            if (dc.dynamic.Contains("$Silent$")) continue; // 不推送指令
-
-                            switch (dc.type)
+                            if (dc.dynamic.Contains("$Silent$"))
                             {
-                                case 1://普通动态
-                                case 2://包含图片的动态
-                                case 4://？出现在转发和普通动态
-                                    if (isLivedanmakuAndBroadcast(dc))
-                                    {
-                                        break; //如果是转发的直播，分出去单独处理
-                                    }
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
-                                    break;
-                                case 256://音频
-                                    break;
-                                case 8://视频
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>"));
-                                    break;
-                                case 4200://直播
-                                    break;
-                                default:
-                                    break;
+                                switch (dc.type)
+                                {
+                                    case 1://普通动态
+                                    case 2://包含图片的动态
+                                    case 4://？出现在转发和普通动态
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[静默动态]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid);
+                                        break;
+                                    case 256://音频
+                                        break;
+                                    case 8://视频
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[静默视频]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n");
+                                        break;
+                                    case 4200://直播
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                switch (dc.type)
+                                {
+                                    case 1://普通动态
+                                    case 2://包含图片的动态
+                                    case 4://？出现在转发和普通动态
+                                        if (isLivedanmakuAndBroadcast(dc))
+                                        {
+                                            break; //如果是转发的直播，分出去单独处理
+                                        }
+                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
+                                        break;
+                                    case 256://音频
+                                        break;
+                                    case 8://视频
+                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
+                                        break;
+                                    case 4200://直播
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
                     }
