@@ -57,7 +57,7 @@ namespace tech.msgp.groupmanager.Code
             gold_coins = 0;
             selver_coins = 0;
             tlist.Clear();
-            bool atall = (DateTime.Now.Hour < 11 && DateTime.Now.Hour > 6);
+            bool atall = (DateTime.Now.Hour < 23 && DateTime.Now.Hour > 6);
             DataBase.me.recBLive(lid, blr.title);
             MainHolder.broadcaster.BroadcastToAllGroup(new IMessageBase[] {
                 new PlainMessage("【直播通知】\n" + blr.title + "\nhttp://xn--z6ut02b.xn--8nx142eqwi.xn--6qq986b3xl/" + new Random().Next(100,99999)),

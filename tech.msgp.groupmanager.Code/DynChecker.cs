@@ -53,7 +53,6 @@ namespace tech.msgp.groupmanager.Code
                     })).Start();
                     gbcounter++;
                 }
-                bool atall = (DateTime.Now.Hour < 11 && DateTime.Now.Hour > 6);
                 foreach (BiliAPI.BiliSpaceDynamic dyn in MainHolder.dynamics)
                 {
                     try
@@ -67,50 +66,28 @@ namespace tech.msgp.groupmanager.Code
                             {
                                 continue;
                             }
-
-                            if (dc.dynamic.Contains("$Silent$"))
+                            bool atall = (DateTime.Now.Hour < 23 && DateTime.Now.Hour > 6);
+                            atall &= !dc.dynamic.Contains("$Silent$");
+                            switch (dc.type)
                             {
-                                switch (dc.type)
-                                {
-                                    case 1://普通动态
-                                    case 2://包含图片的动态
-                                    case 4://？出现在转发和普通动态
-                                        MainHolder.broadcaster.BroadcastToAdminGroup("[静默动态]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid);
-                                        break;
-                                    case 256://音频
-                                        break;
-                                    case 8://视频
-                                        MainHolder.broadcaster.BroadcastToAdminGroup("[静默视频]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n");
-                                        break;
-                                    case 4200://直播
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                switch (dc.type)
-                                {
-                                    case 1://普通动态
-                                    case 2://包含图片的动态
-                                    case 4://？出现在转发和普通动态
-                                        if (isLivedanmakuAndBroadcast(dc))
-                                        {
-                                            break; //如果是转发的直播，分出去单独处理
-                                        }
-                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
-                                        break;
-                                    case 256://音频
-                                        break;
-                                    case 8://视频
-                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
-                                        break;
-                                    case 4200://直播
-                                        break;
-                                    default:
-                                        break;
-                                }
+                                case 1://普通动态
+                                case 2://包含图片的动态
+                                case 4://？出现在转发和普通动态
+                                    if (isLivedanmakuAndBroadcast(dc))
+                                    {
+                                        break; //如果是转发的直播，分出去单独处理
+                                    }
+                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
+                                    break;
+                                case 256://音频
+                                    break;
+                                case 8://视频
+                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IMessageBase)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
+                                    break;
+                                case 4200://直播
+                                    break;
+                                default:
+                                    break;
                             }
                         }
                     }
