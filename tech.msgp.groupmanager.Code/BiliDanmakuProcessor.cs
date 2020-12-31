@@ -16,6 +16,8 @@ namespace tech.msgp.groupmanager.Code
         private readonly int liveid;
         public int lid = -1;
         private int new_commers = 0;
+        private DateTime lastrecon;
+        private int failtimes = 0;
 
         //int actviewers = 0;
         private int selver_coins = 0;
@@ -41,8 +43,22 @@ namespace tech.msgp.groupmanager.Code
             blr = new BiliLiveRoom(liveid);
         }
 
+        private void doStreamCacuStability()
+        {
+            if (lastrecon == null) lastrecon = DateTime.Now;
+            if ((DateTime.Now - lastrecon).TotalSeconds < 60) failtimes++;
+            else failtimes = 0;
+            lastrecon = DateTime.Now;
+            if (failtimes > 4)
+            {
+                blr.sendDanmaku("直播频繁断开,可能不稳定");
+                failtimes = 0;
+            }
+        }
+
         public void StreamStarted(object sender, StreamStartedArgs e)
         {
+            doStreamCacuStability();
             if (lid > 0 && !ispickedup)
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup("开播事件被重复推送，将忽略并沿用原事件ID。\n" +

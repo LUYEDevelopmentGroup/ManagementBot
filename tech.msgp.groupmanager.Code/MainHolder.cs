@@ -2,6 +2,7 @@
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Newtonsoft.Json.Linq;
+using PyEngine;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -24,6 +25,7 @@ namespace tech.msgp.groupmanager.Code
         public static List<long> friends;
         public static pThreadPool pool;
         public static MiraiHttpSession session;
+        public static PyRunner py;
 
         public static logger_ logger;
 
@@ -81,12 +83,12 @@ namespace tech.msgp.groupmanager.Code
 
             try
             {
-
-                MainHolder.logger("SideLoad", "BotAPI is UP.", ConsoleColor.Black, ConsoleColor.White);
+                py = new PyRunner();
+                MainHolder.logger("SideLoad", "Python-Engine is UP.", ConsoleColor.Black, ConsoleColor.White);
             }
             catch (Exception)
             {
-                MainHolder.logger("SideLoad", "BotAPI Failed.", ConsoleColor.Black, ConsoleColor.Red);
+                MainHolder.logger("SideLoad", "Python-Engine Failed.", ConsoleColor.Black, ConsoleColor.Red);
             }
 
             try

@@ -8,6 +8,7 @@ namespace tech.msgp.groupmanager.Code
 {
     internal class Commands
     {
+        private static string[] bannedKeywords = { "open(", "import", "system(", "exec", "eval", "input", "read" };
         public static List<string> getAllPictures(IGroupMessageEventArgs e)
         {
             List<string> list = new List<string>();
@@ -706,6 +707,24 @@ namespace tech.msgp.groupmanager.Code
                 catch
                 {
 
+                }
+
+                //Python指令
+                if (clearstr.Split('\n')[0].ToUpper().Contains("PYTHON"))
+                {
+                    {//安全性检测
+                        string str = clearstr.ToLower().Replace(" ", "");
+                        foreach (string ban in bannedKeywords)
+                        {
+                            if (str.Contains(ban))
+                            {
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python代码不允许尝试与外部环境交互，包括但不限于：\n· 文件或网络I/O\n· 与机器人上下文中的对象交互\n· 线程/进程控制\n· 调用库\n· 其它可能影响系统安全的内容\n\n您的代码没有被执行。");
+                                return;
+                            }
+                        }
+                    }
+                    string resu = MainHolder.py.runPyCommand(clearstr);
+                    if (resu != null && resu.Length>0) MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, resu);
                 }
             }
         }
