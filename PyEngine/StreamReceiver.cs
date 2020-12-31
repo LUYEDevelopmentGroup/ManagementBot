@@ -8,13 +8,16 @@ namespace PyEngine
     class StreamReceiver : StreamWriter
     {
         List<string> buffer = new List<string>();
+        Stream stream;
         #region Event
         public event EventHandler<string> StringWritten;
         #endregion
 
         #region CTOR
         public StreamReceiver(Stream s) : base(s)
-        { }
+        {
+            stream = s;
+        }
         #endregion
 
         #region Private Methods
@@ -45,6 +48,7 @@ namespace PyEngine
 
         public string ReadOnce()
         {
+            while (stream.ReadByte() != -1) ;
             string pop = buffer[buffer.Count - 1];
             buffer.RemoveAt(buffer.Count - 1);
             return pop;
@@ -52,6 +56,7 @@ namespace PyEngine
 
         public string ReadToEnd()
         {
+            while (stream.ReadByte() != -1) ;
             StringBuilder sb = new StringBuilder();
             foreach(string str in buffer)
             {

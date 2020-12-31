@@ -2,13 +2,15 @@
 using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using tech.msgp.groupmanager.Code.BiliAPI;
 
 namespace tech.msgp.groupmanager.Code
 {
     internal class Commands
     {
-        private static string[] bannedKeywords = { "open(", "import", "system(", "exec", "eval", "input", "read" };
+        private static string[] bannedKeywords = { "open(", "import", "system(", "exec", "eval", "input", "read",
+        "sleep","delay","while","write","stream"};
         public static List<string> getAllPictures(IGroupMessageEventArgs e)
         {
             List<string> list = new List<string>();
@@ -718,13 +720,47 @@ namespace tech.msgp.groupmanager.Code
                         {
                             if (str.Contains(ban))
                             {
-                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python代码不允许尝试与外部环境交互，包括但不限于：\n· 文件或网络I/O\n· 与机器人上下文中的对象交互\n· 线程/进程控制\n· 调用库\n· 其它可能影响系统安全的内容\n\n您的代码没有被执行。");
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python代码不允许尝试与外部环境交互，也不允许while循环和延时。您的代码没有被执行。");
                                 return;
                             }
                         }
                     }
+
                     string resu = MainHolder.py.runPyCommand(clearstr);
-                    if (resu != null && resu.Length>0) MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, resu);
+                    if (resu != null && resu.Length > 0)
+                    {
+                        Array lines = (Array)resu.Split('\n');
+                        if (resu.Length > 100)
+                        {
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                new AtMessage(e.Sender.Id),
+                                new PlainMessage("\n"+resu.Substring(0,100)+"\n<输出过长被截断>")
+                            });
+                            resu = null;
+                        }
+                        else if (lines.Length > 10)
+                        {
+                            int ii = 0;
+                            StringBuilder sb = new StringBuilder();
+                            foreach(string line in lines)
+                            {
+                                sb.Append(line);
+                            }
+                            resu = sb.ToString();
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                new AtMessage(e.Sender.Id),
+                                new PlainMessage("\n"+resu)
+                            });
+                            resu = null;
+                        }
+                        else
+                        {
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                new AtMessage(e.Sender.Id),
+                                new PlainMessage("\n"+resu)
+                            });
+                        }
+                    }
                 }
             }
         }
