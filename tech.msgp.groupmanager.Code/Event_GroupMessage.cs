@@ -13,12 +13,14 @@ namespace tech.msgp.groupmanager.Code
     {
         public void processVideoBilibili(IGroupMessageEventArgs e, string bvn)
         {
-            if (!DataBase.me.isUserOperator(e.Sender.Id))
+
+            BiliVideo biliv = new BiliVideo(bvn);
+            if (DataBase.me.isUserOperator(e.Sender.Id))
             {
+                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "【视频分享】\n《" + biliv.title + "》\nBy " + biliv.owner.name);
                 return; //不处理管理员行为
             }
 
-            BiliVideo biliv = new BiliVideo(bvn);
             string dt = "[视频分享]\n群:" + e.Sender.Group.Name + "\n人:" + e.Sender.Name + "\n分享视频：\n" + biliv.title + "\nUP：" + biliv.owner.name + "\nhttps://www.bilibili.com/video/" + biliv.vid + "\n";
             if (biliv.owner.uid == 5659864 ||
                 biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0)))//鹿野发布或参与
@@ -30,7 +32,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 //违规！警告涉事者并撤回消息
                 MainHolder.session.RevokeMessageAsync(((SourceMessage)e.Chain[0]).Id);
-                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "【非鹿野发布】且【合作名单不包含鹿野】的视频不被允许分享。该次违规行为未被主动记录，仅做提醒。\n特殊情况请联系管理员哦");
+                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "【非鹿野发布】且【合作名单不包含鹿野】的视频不被允许分享。请仔细阅读群规。\n特殊情况请联系管理员哦");
                 MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【违规分享，已撤回】");
                 return;
             }
@@ -68,7 +70,11 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
                                     }
                                     //message.Message
-                                    string url = AVFinder.UrlFromString(message.Message);
+                                    {
+                                        string abvn = AVFinder.abvFromString(message.Message);
+                                        if (abvn != null && abvn != "")
+                                            processVideoBilibili(e, abvn);
+                                    }
                                     Commands.Proc(session, e, message.Message);
                                 }
                                 break;

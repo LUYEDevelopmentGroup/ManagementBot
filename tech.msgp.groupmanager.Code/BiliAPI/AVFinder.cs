@@ -67,56 +67,17 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
 
         public static string UrlFromString(string input)
         {
-            Regex wordOnly = new Regex("(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]");
-            return wordOnly.Match(input).Value;
+            Regex httpUrl = new Regex("(https?)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]");
+            return httpUrl.Match(input).Value;
         }
 
-        public static string bvFromString(string input)
+        public static string abvFromString(string input)
         {
-            string identifier = "www.bilibili.com/video/";
-            int uustart = input.IndexOf(identifier);
-            string id = "";
-            if (uustart >= 0)//是个B站网址
-            {
-                id = input.Substring(uustart + identifier.Length).Split('?')[0];
-            }
-            else
-            {
-                int avstart = identifier.ToUpper().IndexOf("AV");
-                if (avstart < 0)
-                {
-                    avstart = identifier.ToUpper().IndexOf("BV");
-                }
-                if (avstart >= 0)
-                {
-                    id = input.Substring(avstart).Split(' ')[0];
-                }
-            }
-            if (id.Length < 3)
-            {
-                return null;
-            }
-
-            string uuid = id.Substring(2);//去除"AV"或"BV"
-            switch (id.Substring(0, 2).ToUpper())
-            {
-                case "AV"://AV号的话验证一下是不是数字
-                    int avn;
-                    bool succeed = int.TryParse(uuid, out avn);
-                    if (!succeed)
-                    {
-                        return null;
-                    }
-
-                    return avn.ToString();
-                case "BV":
-                    return id.Substring(2);
-                default://不是AV也不是BV
-                    return null;
-            }
-#pragma warning disable CS0162 // 检测到无法访问的代码
-            return null;
-#pragma warning restore CS0162 // 检测到无法访问的代码
+            Regex BV = new Regex("[Bb][Vv]1[A-Za-z0-9]{2}4[A-Za-z0-9]{3}7[A-Za-z0-9]*");
+            Regex AV = new Regex("[Aa][Vv][0-9]+");
+            string answer1 = BV.Match(input).Value;
+            if (answer1 == null || answer1 == "") answer1 = AV.Match(input).Value;
+            return answer1;
         }
     }
 }

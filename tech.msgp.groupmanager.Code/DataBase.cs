@@ -977,6 +977,8 @@ namespace tech.msgp.groupmanager.Code
             return (count("SELECT COUNT(*) from bili_qqbound where qq like @qq and uid is not null;", args) > 0);
         }
 
+        //public bool isUserKickedOut
+
         public long getUserBoundedUID(long qq)
         {
             try

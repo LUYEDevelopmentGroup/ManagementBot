@@ -135,11 +135,14 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
             kvs.Add("msg[msg_type]", "1");
             kvs.Add("msg[msg_status]", "0");
             kvs.Add("msg[content]", job.ToString());
+            kvs.Add("msg[new_face_version]", "0");
             kvs.Add("msg[timestamp]", TimestampHandler.GetTimeStamp(DateTime.Now).ToString());
-            //kvs.Add("msg[dev_id]", "");暂时不知道如何生成，但该项似乎不影响私信的发送
+            kvs.Add("msg[dev_id]", "A8DF21F2-98F7-43A6-9EB4-E348F9B41EBC");//暂时不知道如何生成，但该项似乎不影响私信的发送
             kvs.Add("build", "0");
             kvs.Add("mobi_app", "web");
             kvs.Add("csrf_token", ck["bili_jct"].Value);
+            kvs.Add("from_firework", "0");
+            kvs.Add("csrf", ck["bili_jct"].Value);
             string response = ThirdPartAPIs._post_with_cookies("https://api.vc.bilibili.com/web_im/v1/web_im/send_msg", kvs);
             if (response == "")
             {

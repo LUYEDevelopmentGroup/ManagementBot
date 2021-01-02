@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using tech.msgp.groupmanager.Code.BiliAPI;
+using tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -197,6 +198,12 @@ namespace tech.msgp.groupmanager.Code
                                     BiliLiveRoom lroom = new BiliLiveRoom(2064239);
                                     MainHolder.broadcaster.BroadcastToAllGroup("[ATALL()][开播啦！]\n" + lroom.title + "\nhttps://live.bilibili.com/" + lroom.roomid);
                                     MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Done.");
+                                }
+                                break;
+                            case "#sendpmsg":
+                                {
+                                    PrivMessageSession psession = PrivMessageSession.openSessionWith(int.Parse(cmd[1]));
+                                    psession.sendMessage(clearstr.Substring(clearstr.IndexOf(cmd[1]) + cmd[1].Length + 1));
                                 }
                                 break;
                             case "#cow":
@@ -730,26 +737,29 @@ namespace tech.msgp.groupmanager.Code
                     if (resu != null && resu.Length > 0)
                     {
                         Array lines = (Array)resu.Split('\n');
+                        if (lines.Length > 10)
+                        {
+                            int ii = 0;
+                            StringBuilder sb = new StringBuilder();
+                            foreach (string line in lines)
+                            {
+                                ii++;
+                                sb.Append(line);
+                                if (ii >= 10) break;
+                            }
+                            resu = sb.ToString().Substring(0, 100);
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                new AtMessage(e.Sender.Id),
+                                new PlainMessage("\n"+resu+"\n<输出过长被截断>")
+                            });
+                            resu = null;
+                        }
+                        else
                         if (resu.Length > 100)
                         {
                             MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
                                 new AtMessage(e.Sender.Id),
                                 new PlainMessage("\n"+resu.Substring(0,100)+"\n<输出过长被截断>")
-                            });
-                            resu = null;
-                        }
-                        else if (lines.Length > 10)
-                        {
-                            int ii = 0;
-                            StringBuilder sb = new StringBuilder();
-                            foreach(string line in lines)
-                            {
-                                sb.Append(line);
-                            }
-                            resu = sb.ToString();
-                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
-                                new AtMessage(e.Sender.Id),
-                                new PlainMessage("\n"+resu)
                             });
                             resu = null;
                         }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using tech.msgp.groupmanager.Code;
+using tech.msgp.groupmanager.Code.EventHandlers;
 
 namespace CQ2IOT_HOST
 {
@@ -84,6 +85,11 @@ namespace CQ2IOT_HOST
                     try
                     {
                         MainHolder.session.GroupMessageEvt += new Event_GroupMessage().GroupMessage;
+                        MainHolder.session.GroupApplyEvt += new GroupEnterRequest().GroupApply;
+                        MainHolder.session.GroupMemberJoinedEvt += new GroupMemberIncrease().GroupMemberJoined;
+                        GroupMemberLeave gleave = new GroupMemberLeave();
+                        MainHolder.session.GroupMemberKickedEvt += gleave.GroupMemberKicked;
+                        MainHolder.session.GroupMemberPositiveLeaveEvt += gleave.GroupMemberPositiveLeave;
                         /*
                         han.onGroupMessageReceive += new Event_GroupMessage().GroupMessage;
                         han.onPrivateMessageReceive += new Event_PrivMessage().PrivateMessage;
