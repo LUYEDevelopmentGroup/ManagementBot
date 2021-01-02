@@ -12,6 +12,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
     {
         public async Task<bool> GroupApply(MiraiHttpSession session, IGroupApplyEventArgs e)
         {
+            
             if (DataBase.me.isCrewGroup(e.FromGroup))
             {//是舰长群
                 if (DataBase.me.isUserBlacklisted(e.FromQQ))

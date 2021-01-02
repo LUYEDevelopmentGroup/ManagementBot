@@ -721,6 +721,8 @@ namespace tech.msgp.groupmanager.Code
                 //Python指令
                 if (clearstr.Split('\n')[0].ToUpper().Contains("PYTHON"))
                 {
+                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python引擎接收到恶意代码导致系统不稳定，在对应补丁上线前暂时关闭。");
+                    return;
                     {//安全性检测
                         string str = clearstr.ToLower().Replace(" ", "");
                         foreach (string ban in bannedKeywords)
