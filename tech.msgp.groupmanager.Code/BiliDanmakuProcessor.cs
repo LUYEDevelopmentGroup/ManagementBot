@@ -51,7 +51,7 @@ namespace tech.msgp.groupmanager.Code
             lastrecon = DateTime.Now;
             if (failtimes > 4)
             {
-                blr.sendDanmaku("直播频繁断开,可能不稳定");
+                if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("直播频繁断开,可能不稳定");
                 failtimes = 0;
             }
         }
@@ -79,14 +79,14 @@ namespace tech.msgp.groupmanager.Code
                 new PlainMessage("【直播通知】\n" + blr.title + "\nhttp://xn--z6ut02b.xn--8nx142eqwi.xn--6qq986b3xl/" + new Random().Next(100,99999)),
                 new ImageMessage(null,blr.cover,null),
                 atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>") });
-            blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");
+            if (MainHolder.useBiliRecFuncs) blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");
             if (!ispickedup)
             {
-                MainHolder.broadcaster.BroadcastToAdminGroup("鹿野已经开播\n事件识别ID:" + lid + "\n" + "https://live.bilibili.com/" + liveid);
+                MainHolder.broadcaster.BroadcastToAdminGroup("开播\n事件识别ID:" + lid + "\n" + "https://live.bilibili.com/" + liveid);
             }
             else
             {
-                MainHolder.broadcaster.BroadcastToAdminGroup("鹿野已经开播\n事件识别ID:" + lid + "(覆盖pickup数据)\n" + "https://live.bilibili.com/" + liveid);
+                MainHolder.broadcaster.BroadcastToAdminGroup("开播\n事件识别ID:" + lid + "(覆盖pickup数据)\n" + "https://live.bilibili.com/" + liveid);
             }
         }
 
@@ -242,12 +242,12 @@ namespace tech.msgp.groupmanager.Code
                                 if (isnew)
                                 {
                                     MainHolder.broadcaster.BroadcastToAdminGroup("欢迎新" + dpword + "！\n" + e.Danmaku.UserName + " #" + e.Danmaku.UserID + "\n时长:" + e.Danmaku.GiftCount);
-                                    blr.sendDanmaku("欢迎新" + dpword + "！请留意私信哦~");
+                                    if (MainHolder.useBiliRecFuncs) if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("欢迎新" + dpword + "！请留意私信哦~");
                                 }
                                 else
                                 {
                                     MainHolder.broadcaster.BroadcastToAdminGroup("欢迎" + dpword + "续航！\n" + e.Danmaku.UserName + " #" + e.Danmaku.UserID + "\n时长:" + e.Danmaku.GiftCount);
-                                    blr.sendDanmaku("欢迎<" + e.Danmaku.UserName + ">续航！");
+                                    if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("欢迎<" + e.Danmaku.UserName + ">续航！");
                                 }
                             }
                             else
@@ -255,12 +255,12 @@ namespace tech.msgp.groupmanager.Code
                                 if (isnew)
                                 {
                                     MainHolder.broadcaster.BroadcastToAdminGroup("侦测到虚空·新" + dpword + "\n" + e.Danmaku.UserName + " #" + e.Danmaku.UserID + "\n时长:" + e.Danmaku.GiftCount);
-                                    blr.sendDanmaku("虚空·新" + dpword + " 已记录 请留意私信~");
+                                    if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("虚空·新" + dpword + " 已记录 请留意私信~");
                                 }
                                 else
                                 {
                                     MainHolder.broadcaster.BroadcastToAdminGroup("侦测到虚空·" + dpword + "续航\n" + e.Danmaku.UserName + " #" + e.Danmaku.UserID + "\n时长:" + e.Danmaku.GiftCount);
-                                    blr.sendDanmaku("侦测到虚空续航，嘀嘀嘀~");
+                                    if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("侦测到虚空续航，嘀嘀嘀~");
                                 }
                             }
                             DataBase.me.recUserBuyGuard(e.Danmaku.UserID, e.Danmaku.GiftCount, e.Danmaku.UserGuardLevel, lid);
@@ -325,7 +325,7 @@ namespace tech.msgp.groupmanager.Code
                                 }
 
                                 MainHolder.broadcaster.BroadcastToAdminGroup("【直播间禁言】\n" + name + "#" + uid + "被禁言。\n使用\"#bpban " + uid + "\"可将其永久封禁。");
-                                MainHolder.bilidmkproc.blr.sendDanmaku(name + "被禁言");
+                                if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(name + "被禁言");
                                 DataBase.me.recBLiveBan(lid, uid, -1);
                             }
                             break;
@@ -367,6 +367,11 @@ namespace tech.msgp.groupmanager.Code
             {
                 if (!DataBase.me.isUserBoundedQQ(uid))
                 {
+                    if (!MainHolder.useBiliRecFuncs)
+                    {
+                        MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
+                        return false;
+                    }
                     succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！成为船员您可以加入舰长群，并有机会获得小礼品。请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                     succeed = succeed && session.sendMessage(token);
                     succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将通知管理协助您进入舰长群并登记享受更多权益。【请回复纯数字，该系统无人值守，私信由软件接收】");
@@ -386,6 +391,11 @@ namespace tech.msgp.groupmanager.Code
                     }
                     else//用QQ发送失败 FallBack到B站私信
                     {
+                        if (!MainHolder.useBiliRecFuncs)
+                        {
+                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
+                            return false;
+                        }
                         succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                         succeed = succeed && session.sendMessage(token);
                         MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 新·" + clevel);
@@ -396,6 +406,11 @@ namespace tech.msgp.groupmanager.Code
             {
                 if (!DataBase.me.isUserBoundedQQ(uid))
                 {
+                    if (!MainHolder.useBiliRecFuncs)
+                    {
+                        MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
+                        return false;
+                    }
                     succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                     succeed = succeed && session.sendMessage(token);
                     succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将通知管理协助您进入舰长群并登记享受更多权益。【请回复纯数字，该系统无人值守，私信由软件接收】");
@@ -412,6 +427,11 @@ namespace tech.msgp.groupmanager.Code
                     }
                     catch
                     {
+                        if (!MainHolder.useBiliRecFuncs)
+                        {
+                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
+                            return false;
+                        }
                         //fall back to BiliPrivMessage
                         succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                         succeed = succeed && session.sendMessage(token);
@@ -427,6 +447,11 @@ namespace tech.msgp.groupmanager.Code
                     }
                     else//用QQ发送失败 FallBack到B站私信
                     {
+                        if (!MainHolder.useBiliRecFuncs)
+                        {
+                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
+                            return false;
+                        }
                         succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                         succeed = succeed && session.sendMessage(token);
                         MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 续航·" + clevel);

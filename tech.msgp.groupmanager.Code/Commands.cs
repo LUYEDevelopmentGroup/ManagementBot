@@ -561,16 +561,16 @@ namespace tech.msgp.groupmanager.Code
                                 switch (cmd.Length)
                                 {
                                     case 2:
-                                        MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1]);
+                                        if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1]);
                                         break;
                                     case 3:
-                                        MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]));
+                                        if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]));
                                         break;
                                     case 4:
-                                        MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]), int.Parse(cmd[3]));
+                                        if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]), int.Parse(cmd[3]));
                                         break;
                                     case 5:
-                                        MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]), int.Parse(cmd[3]), int.Parse(cmd[4]));
+                                        if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(cmd[1], int.Parse(cmd[2]), int.Parse(cmd[3]), int.Parse(cmd[4]));
                                         break;
                                     default:
                                         MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "#senddmk 文本内容 字体大小 BLive颜色代码 BLive气泡代码");
@@ -682,10 +682,12 @@ namespace tech.msgp.groupmanager.Code
                     switch (cmd[0])
                     {
                         case "#MC":
+                            if (!MainHolder.enableNativeFuncs) return;
                             MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "请查看文档：如何加入鹿野的MC粉丝服务器\nhttps://docs.qq.com/doc/DTUJObWZteWVXS1Zi");
                             break;
                         case "#MCSTATUS":
                             {
+                                if (!MainHolder.enableNativeFuncs) return;
                                 string res = "[Minecraft 粉丝服务器状态]\n";
                                 bool anygood = false;
                                 //res += "苏州电信 -> 停机维护\n";
@@ -721,6 +723,7 @@ namespace tech.msgp.groupmanager.Code
                 //Python指令
                 if (clearstr.Split('\n')[0].ToUpper().Contains("PYTHON"))
                 {
+                    if (!MainHolder.enableNativeFuncs) return;
                     MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python引擎接收到恶意代码导致系统不稳定，在对应补丁上线前暂时关闭。");
                     return;
                     {//安全性检测

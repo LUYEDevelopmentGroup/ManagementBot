@@ -112,6 +112,23 @@ namespace tech.msgp.groupmanager.Code.MCServer
             };
             return alloedratio.Contains(whratio);
         }
+
+        public static bool checkPick(string imageurl)
+        {
+            Image image = getImageFromWeb(imageurl);
+            double whratio = (image.Width / (double)image.Height);
+            List<double> alloedratio = new List<double>
+            { 64.0 / 32.0,
+                64.0 / 64.0
+            };
+            return alloedratio.Contains(whratio) && isPictureTransparent(image);
+        }
+
+        public static bool isPictureTransparent(Image img)
+        {
+            Bitmap bmap = new Bitmap(img);
+            return bmap.GetPixel(0, 0) == Color.Transparent;
+        }
     }
 
     internal class Texture

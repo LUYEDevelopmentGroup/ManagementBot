@@ -32,7 +32,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 //违规！警告涉事者并撤回消息
                 MainHolder.session.RevokeMessageAsync(((SourceMessage)e.Chain[0]).Id);
-                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "【非鹿野发布】且【合作名单不包含鹿野】的视频不被允许分享。请仔细阅读群规。\n特殊情况请联系管理员哦");
+                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该视频不被允许分享。请仔细阅读群规。\n特殊情况请联系管理员哦");
                 MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【违规分享，已撤回】");
                 return;
             }

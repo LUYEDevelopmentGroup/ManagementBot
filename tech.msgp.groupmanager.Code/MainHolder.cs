@@ -27,6 +27,23 @@ namespace tech.msgp.groupmanager.Code
         public static MiraiHttpSession session;
         public static PyRunner py;
 
+        /// <summary>
+        /// 推送动态的B站UID列表
+        /// </summary>
+        public static List<int> BiliWatchUIDs;
+        /// <summary>
+        /// 侦听直播的直播间号
+        /// </summary>
+        public static int LiveRoom;
+        /// <summary>
+        /// 是否启用B站弹幕、私信功能
+        /// </summary>
+        public static bool useBiliRecFuncs;
+        /// <summary>
+        /// 是否启用鹿野高度定制的功能 
+        /// 这些功能已经高度定制，难以在短时间内移植
+        /// </summary>
+        public static bool enableNativeFuncs;
         public static logger_ logger;
 
         public delegate void logger_(string cato, string msg, ConsoleColor backcolor = ConsoleColor.Black, ConsoleColor frontcolor = ConsoleColor.White);
@@ -124,8 +141,15 @@ namespace tech.msgp.groupmanager.Code
             }
             try
             {
-                PrivmessageChecker.startthreads();
-                MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
+                if (MainHolder.useBiliRecFuncs)
+                {
+                    PrivmessageChecker.startthreads();
+                    MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
+                }
+                else
+                {
+                    MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is DISABLED.", ConsoleColor.Black, ConsoleColor.White);
+                }
             }
             catch (Exception)
             {

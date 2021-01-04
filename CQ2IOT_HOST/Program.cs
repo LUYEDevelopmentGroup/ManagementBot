@@ -14,19 +14,26 @@ namespace CQ2IOT_HOST
 {
     internal class Program
     {
+
+        public const string codeName = "ManaBot";
+        public const string version = "v0.1.48";
+
         private static string host;
         private static long me_qq;
         private static string key;
         private static string keyword = "";
         private static pThreadPool pool;
+        private static string authenti;
 
         private static void Main(string[] args)
         {
+            DateTime start = DateTime.Now;
             logger("MainThread", "Getting IPv4 Address...");
             string ipv4_ip = NetworkInfo.GetLocalIpAddress();
             MainHolder.logger = logger;
             bool booted = false;
             Exception exc = null;
+
             #region 读取配置
             StreamReader cfile = new StreamReader("config.json");
             JObject config = (JObject)JsonConvert.DeserializeObject(cfile.ReadToEnd());
@@ -34,6 +41,15 @@ namespace CQ2IOT_HOST
             host = config["mirai"].Value<string>("server");
             me_qq = config["mirai"].Value<long>("user");
             key = config["mirai"].Value<string>("key");
+            authenti = config["auth"].Value<string>("name");
+            MainHolder.LiveRoom = config["bili"].Value<int>("roomid");
+            MainHolder.BiliWatchUIDs = new List<int>();
+            foreach (JToken j in config["bili"]["uids"])
+            {
+                MainHolder.BiliWatchUIDs.Add(j.Value<int>());
+            }
+            MainHolder.useBiliRecFuncs = config["auth"].Value<bool>("rectfunc");
+            MainHolder.enableNativeFuncs = config["auth"].Value<bool>("nativefuncs");
             //如果是本地ip就走本地
             if (host == ipv4_ip && Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
@@ -41,6 +57,7 @@ namespace CQ2IOT_HOST
                 host = "127.0.0.1";
             }
             #endregion
+
             while (true)//故障自动重启
             {
                 try
@@ -90,6 +107,9 @@ namespace CQ2IOT_HOST
                         GroupMemberLeave gleave = new GroupMemberLeave();
                         MainHolder.session.GroupMemberKickedEvt += gleave.GroupMemberKicked;
                         MainHolder.session.GroupMemberPositiveLeaveEvt += gleave.GroupMemberPositiveLeave;
+                        PrivMessageHan pmsg = new PrivMessageHan();
+                        MainHolder.session.TempMessageEvt += pmsg.TempMessage;
+                        MainHolder.session.FriendMessageEvt += pmsg.FriendMessage;
                         /*
                         han.onGroupMessageReceive += new Event_GroupMessage().GroupMessage;
                         han.onPrivateMessageReceive += new Event_PrivMessage().PrivateMessage;
@@ -107,6 +127,13 @@ namespace CQ2IOT_HOST
                     }
                     logger("MainThread", "Stand by.  The bot is up and ready to go. Type to set an log filter.", ConsoleColor.Black, ConsoleColor.Green);
 
+                    MainHolder.broadcaster.BroadcastToAdminGroup("[启动报告]\n" +
+                        "当前版本：" + codeName + version + "\n" +
+                        "启用耗时：" + (DateTime.Now - start).TotalSeconds + "s" +
+                        "当前授权：" + authenti + "\n" +
+                        "授权约束：" + (MainHolder.useBiliRecFuncs ? "" : "[MainHolder.useBiliRecFuncs=False]\n") +
+                         (MainHolder.enableNativeFuncs ? "" : "[MainHolder.enableNativeFuncs=False]\n"))
+                        ;
 
                     if (booted)
                     {
@@ -135,7 +162,6 @@ namespace CQ2IOT_HOST
                                 {
                                     field = field.Substring(0, field.Length - 1);
                                 }
-
                                 continue;
                             }
                             if (k.Key == ConsoleKey.Delete)

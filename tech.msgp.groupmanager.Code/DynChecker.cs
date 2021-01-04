@@ -21,8 +21,7 @@ namespace tech.msgp.groupmanager.Code
             }
             else
             {
-                listened_uids.Add(5659864);
-                listened_uids.Add(415413197);
+                listened_uids = MainHolder.BiliWatchUIDs;
                 foreach (int uid in listened_uids)
                 {
                     MainHolder.dynamics.Add(new BiliAPI.BiliSpaceDynamic(uid));
@@ -46,9 +45,9 @@ namespace tech.msgp.groupmanager.Code
                     new Thread(new ThreadStart(() =>
                     {
                         /*
-                        MainHolder.bilidmkproc.blr.sendDanmaku("#签到");
+                        MainHolder.bilidmkproc.if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("#签到");
                         Thread.Sleep(2000);
-                        MainHolder.bilidmkproc.blr.sendDanmaku("#查询");
+                        MainHolder.bilidmkproc.if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("#查询");
                         */
                     })).Start();
                     gbcounter++;
@@ -98,7 +97,7 @@ namespace tech.msgp.groupmanager.Code
                 }
                 try
                 {//检测鹿野粉丝数
-                    check_fans();
+                    if(MainHolder.enableNativeFuncs) check_fans();
                 }
                 catch (Exception err)
                 {
@@ -109,7 +108,6 @@ namespace tech.msgp.groupmanager.Code
         }
         public static void check_fans(bool debug = false)
         {
-
             string LuYe_UpStat = BiliAPI.ThirdPartAPIs.getUpState(5659864);
             if (LuYe_UpStat != null)
             {
@@ -149,7 +147,7 @@ namespace tech.msgp.groupmanager.Code
                                 if (!debug)
                                 {
                                     int achieved_count = DataBase.me.setCountRiched(fans, jb2["data"]["list"][0].Value<int>("mid"));
-                                    MainHolder.broadcaster.BroadcastToAllGroup("【里程碑！】\n祝贺鹿野·大总攻成功达成<" + achieved_count + ">粉！\n第" + achieved_count + "粉：" + jb2["data"]["list"][index].Value<string>("uname"));
+                                    MainHolder.broadcaster.BroadcastToAllGroup("【里程碑！】\n成功达成<" + achieved_count + ">粉！\n第" + achieved_count + "粉：" + jb2["data"]["list"][index].Value<string>("uname"));
                                 }
                                 else
                                 {

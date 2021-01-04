@@ -128,7 +128,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                                 msg_sock.Send(Encoding.UTF8.GetBytes("REPLY^OK"));
                                 break;
                             case "D":
-                                MainHolder.bilidmkproc.blr.sendDanmaku(str.Substring(2));
+                                if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(str.Substring(2));
                                 msg_sock.Send(Encoding.UTF8.GetBytes("REPLY^OK"));
                                 break;
                             case "E":
@@ -268,7 +268,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                                 msg_sock.Send(Encoding.UTF8.GetBytes("REPLY^OK"));
                                 break;
                             case "SEND":
-                                MainHolder.bilidmkproc.blr.sendDanmaku(st[1]);
+                                if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(st[1]);
                                 msg_sock.Send(Encoding.UTF8.GetBytes("REPLY^OK"));
                                 break;
                         }

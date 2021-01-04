@@ -12,6 +12,7 @@ namespace tech.msgp.groupmanager.Code
         //public static List<long> sent = new List<long>();
         public static void startthreads()
         {
+            if (!MainHolder.useBiliRecFuncs) return;
             if (main != null && main.IsAlive)
             {
                 //main
