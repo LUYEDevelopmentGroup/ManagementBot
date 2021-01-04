@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -18,6 +19,30 @@ namespace tech.msgp.groupmanager.Code
                 request.Method = "GET";
                 request.ContentType = "application/json";
 
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream myResponseStream = response.GetResponseStream();
+                StreamReader streamReader = new StreamReader(myResponseStream);
+                retString = streamReader.ReadToEnd();
+                streamReader.Close();
+                myResponseStream.Close();
+                return retString;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        public static string _Jget(string url)
+        {
+            try
+            {
+                string retString = string.Empty;
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.ContentType = "application/json";
+                request.UserAgent = "Java Client ; Minecarft PCL Launcher ; Manabot";
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 Stream myResponseStream = response.GetResponseStream();
                 StreamReader streamReader = new StreamReader(myResponseStream);
@@ -56,6 +81,20 @@ namespace tech.msgp.groupmanager.Code
                 //HttpWebResponse response = (HttpWebResponse)ex.
                 return "";
             }
+        }
+
+        public static string[] getTrustedSkinServer()
+        {
+            //skinDomains
+            string res = _Jget("https://auth.api.microstorm.tech/");
+            JObject j = (JObject)JsonConvert.DeserializeObject(res);
+            JArray jarray = (JArray)j["skinDomains"];
+            List<string> lst = new List<string>();
+            foreach(JValue jb in jarray)
+            {
+                lst.Add(jb.Value<string>());
+            }
+            return lst.ToArray();
         }
 
         public static int getQQLevel(long qq, int retry = 0)

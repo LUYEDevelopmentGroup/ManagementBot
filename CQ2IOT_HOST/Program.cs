@@ -126,15 +126,15 @@ namespace CQ2IOT_HOST
                         logger("MainThread", "Event Recevier FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                     }
                     logger("MainThread", "Stand by.  The bot is up and ready to go. Type to set an log filter.", ConsoleColor.Black, ConsoleColor.Green);
-
+#if RELEASE
                     MainHolder.broadcaster.BroadcastToAdminGroup("[启动报告]\n" +
                         "当前版本：" + codeName + version + "\n" +
-                        "启用耗时：" + (DateTime.Now - start).TotalSeconds + "s" +
+                        "启用耗时：" + (DateTime.Now - start).TotalSeconds + "s\n" +
                         "当前授权：" + authenti + "\n" +
                         "授权约束：" + (MainHolder.useBiliRecFuncs ? "" : "[MainHolder.useBiliRecFuncs=False]\n") +
                          (MainHolder.enableNativeFuncs ? "" : "[MainHolder.enableNativeFuncs=False]\n"))
                         ;
-
+#endif
                     if (booted)
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("严重故障\n机器人遭遇了不可恢复的错误，主线程无法继续运行。为了确保稳定运行，" +

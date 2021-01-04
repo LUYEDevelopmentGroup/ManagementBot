@@ -13,6 +13,7 @@ namespace tech.msgp.groupmanager.Code.MCServer
         public long timestamp;
         public string profileId, profileName;
         public List<Texture> textures;
+        public string[] trusted_source = { };
         /*
             {
                 "timestamp":该属性值被生成时的时间戳（Java 时间戳格式，即自 1970-01-01 00:00:00 UTC 至今经过的毫秒数）,
@@ -36,6 +37,7 @@ namespace tech.msgp.groupmanager.Code.MCServer
             profileId = puuid;
             profileName = pname;
             this.textures = textures;
+            trusted_source = ThirdPartAPIs.getTrustedSkinServer();
         }
 
         public override string ToString()
@@ -103,6 +105,25 @@ namespace tech.msgp.groupmanager.Code.MCServer
             }
         }
 
+        public static bool CheckSkinSourceTrusted(string url)
+        {
+            try
+            {
+                string[] trusted_sourcE = ThirdPartAPIs.getTrustedSkinServer();
+                Uri u = new Uri(url);
+                string domain = u.Host;
+                foreach (string trusted in trusted_sourcE)
+                {
+                    if (domain.Contains(trusted)) return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static bool checkPick(Image image)
         {
             double whratio = (image.Width / (double)image.Height);
@@ -113,7 +134,7 @@ namespace tech.msgp.groupmanager.Code.MCServer
             return alloedratio.Contains(whratio);
         }
 
-        public static bool checkPick(string imageurl)
+        public static bool checkPick(string imageurl, bool sizeonly = false)
         {
             Image image = getImageFromWeb(imageurl);
             double whratio = (image.Width / (double)image.Height);
@@ -121,13 +142,14 @@ namespace tech.msgp.groupmanager.Code.MCServer
             { 64.0 / 32.0,
                 64.0 / 64.0
             };
-            return alloedratio.Contains(whratio) && isPictureTransparent(image);
+            return alloedratio.Contains(whratio) && (sizeonly || isPictureTransparent(image));
         }
 
         public static bool isPictureTransparent(Image img)
         {
             Bitmap bmap = new Bitmap(img);
-            return bmap.GetPixel(0, 0) == Color.Transparent;
+            Color leftupConner = bmap.GetPixel(0, 0);
+            return leftupConner.A == Color.Transparent.A;
         }
     }
 

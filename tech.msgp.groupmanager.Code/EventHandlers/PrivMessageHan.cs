@@ -114,7 +114,12 @@ namespace tech.msgp.groupmanager.Code
                                         rep.reply("用法：\n" + cmd[0] + " https://xxxxx.xxxxx.xxxxx/xxx.png");
                                         break;
                                     }
-                                    if (!MCServer.SkinHandler.checkPick(cmd[0]))
+                                    if (!MCServer.SkinHandler.CheckSkinSourceTrusted(cmd[1]))
+                                    {
+                                        rep.reply("使用的图像URL无效。URL必须格式正确且来自可信的图像服务器。");
+                                        return;
+                                    }
+                                    if (!MCServer.SkinHandler.checkPick(cmd[1]))
                                     {
                                         rep.reply("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
                                         return;
