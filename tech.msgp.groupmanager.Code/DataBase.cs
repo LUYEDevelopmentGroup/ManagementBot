@@ -1657,7 +1657,7 @@ namespace tech.msgp.groupmanager.Code
                 { "@weigh", ww.ToString() },
                 { "@note", note.ToString() }
             };
-            return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note， @weigh, NOW());", args);
+            return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note, @weigh, NOW());", args);
         }
 
         public double getQQWarnCount(long qq)
