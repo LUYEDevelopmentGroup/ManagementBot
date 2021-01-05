@@ -20,7 +20,7 @@ namespace tech.msgp.groupmanager.Code
         public bool connected = false;
 
         #region 底层封装
-        public DataBase(string addr,string user,string passwd)
+        public DataBase(string addr, string user, string passwd)
         {
             sqladdr = addr;
             sqluser = user;
@@ -1611,29 +1611,73 @@ namespace tech.msgp.groupmanager.Code
             return execsql("INSERT INTO bili_users (uid, uname, addtime) VALUES (@uid, @name, NOW());", args);
         }
 
-        public bool recQQWarn(long qq, long op, string note)
-        {
-            Dictionary<string, string> args = new Dictionary<string, string>
-            {
-                { "@qq", qq.ToString() },
-                { "@op", op.ToString() },
-                { "@note", note.ToString() }
-            };
-            return execsql("INSERT INTO qq_warns (qq, operator, note, timestamp) VALUES (@qq, @op, @note, NOW());", args);
-        }
+        private Dictionary<long, double> opweightmp = new Dictionary<long, double>();
 
-        public int getQQWarnCount(long qq)
+        public double getOPWeigh(long qq,bool cache=true)
         {
             Dictionary<string, string> args = new Dictionary<string, string>
             {
                 { "@qq", qq.ToString() }
             };
-            List<int> rolls = new List<int>
+            List<int> vs = new List<int>
             {
-                0
+                3
             };
-            string rtv = querysql("SELECT COUNT(*) FROM qq_warns where qq = @qq;", args, rolls)[0][0];
-            return int.Parse(rtv);
+            List<List<string>> re = DataBase.me.querysql("SELECT * from qq_operator where qq like @qq ;", args, vs);
+            if (opweightmp.ContainsKey(qq))
+            {
+                if (cache) return opweightmp[qq];
+                else
+                    opweightmp[qq] = double.Parse(re[0][0]);
+            }
+            else opweightmp.Add(qq, double.Parse(re[0][0]));
+            return double.Parse(re[0][0]);
+        }
+
+        public bool recQQWarn(long qq, long op, string note)
+        {
+            double weigh = 1;
+            Dictionary<string, string> args = new Dictionary<string, string>
+            {
+                { "@qq", qq.ToString() },
+                { "@op", op.ToString() },
+                { "@weigh", weigh.ToString() },
+                { "@note", note.ToString() }
+            };
+            return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note, @weigh, NOW());", args);
+        }
+
+        public bool recQQWarn(long qq, long op, double weigh, string note)
+        {
+            double ww = weigh;
+            Dictionary<string, string> args = new Dictionary<string, string>
+            {
+                { "@qq", qq.ToString() },
+                { "@op", op.ToString() },
+                { "@weigh", ww.ToString() },
+                { "@note", note.ToString() }
+            };
+            return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note， @weigh, NOW());", args);
+        }
+
+        public double getQQWarnCount(long qq)
+        {
+            Dictionary<string, string> args = new Dictionary<string, string>
+            {
+                { "@qq", qq.ToString() }
+            };
+            List<int> vs = new List<int>
+            {
+                2,
+                5
+            };
+            List<List<string>> re = querysql("SELECT * from qq_warns where qq = @qq;", args, vs);
+            double sum = 0;
+            foreach(List<string> line in re)
+            {
+                sum += double.Parse(line[1]) * getOPWeigh(long.Parse(line[0])) * MainHolder.GLOBAL_WARN_WEIGHT;
+            }
+            return sum;
         }
 
         public List<Warn> listWarnsQQ(long qq)
@@ -1645,7 +1689,8 @@ namespace tech.msgp.groupmanager.Code
                 1,
                 2,
                 3,
-                4
+                4,
+                5
             };
 
             args.Add("@qq", qq.ToString());
@@ -1676,7 +1721,8 @@ namespace tech.msgp.groupmanager.Code
                 1,
                 2,
                 3,
-                4
+                4,
+                5
             };
 
             args.Add("@id", id.ToString());
@@ -1690,7 +1736,8 @@ namespace tech.msgp.groupmanager.Code
                     op = long.Parse(line[2]),
                     id = int.Parse(line[0]),
                     note = line[4],
-                    time = DateTime.Parse(line[3])
+                    time = DateTime.Parse(line[3]),
+                    weigh = double.Parse(line[5])
                 };
                 return v;
             }
@@ -1720,6 +1767,7 @@ namespace tech.msgp.groupmanager.Code
         public int id;
         public string note;
         public DateTime time;
+        public double weigh;
     }
 
 }

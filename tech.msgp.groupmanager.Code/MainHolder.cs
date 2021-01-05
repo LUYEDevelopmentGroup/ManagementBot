@@ -15,6 +15,8 @@ namespace tech.msgp.groupmanager.Code
 {
     public class MainHolder
     {
+        public const double GLOBAL_WARN_WEIGHT = 1F/3F;
+
         public static List<BiliSpaceDynamic> dynamics = new List<BiliSpaceDynamic>();
         public static Broadcaster broadcaster;
         public static BiliDanmakuProcessor bilidmkproc;

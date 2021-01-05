@@ -40,6 +40,73 @@ namespace tech.msgp.groupmanager.Code
             return list;
         }
 
+        public static void Warn(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr, double weigh)
+        {
+            string[] cmd = clearstr.Split(' ');
+            string imgdata = "";
+            int imgid = 0;
+            List<string> pics = getAllPictures(e);
+            List<long> ats = getAllAts(e);
+            if (pics.Count > 0)
+            {
+                imgdata = "\n\n附件图片：";
+                foreach (string pic in pics)
+                {
+                    if (pic == null)
+                    {
+                        continue;
+                    }
+
+                    imgid++;
+                    imgdata += "\n[PICTURE]" + pic;
+                }
+            }
+            string eviid = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now).ToString();
+
+            if (ats.Count <= 0)
+            {
+                //考虑到不方便at的情况，使用QQ号
+                if (long.TryParse(cmd[1], out long w_qq))
+                {
+                    DataBase.me.recQQWarn(w_qq, e.Sender.Id, weigh, clearstr.Substring(3) + imgdata);
+                    double wcount = DataBase.me.getQQWarnCount(w_qq);
+                    string iname = "";
+                    try
+                    {
+                        iname = "<" + new UserData(w_qq).name + ">";
+                    }
+                    catch
+                    {
+                        iname = "* [" + w_qq + "]";
+                    }
+                    ManagementEvent me = new ManagementEvent(ManagementEvent.WARN, e.Sender.Id, w_qq, clearstr);
+                    DataBase.me.recManagementEvents(me);
+                    MainHolder.broadcaster.BroadcastToAdminGroup(iname + " #" + w_qq + "在" + e.Sender.Group.Name + "被警告\n第<" + wcount + ">次被警告\n附件数：" + imgid + "\n事件ID：" + me.id);
+                }
+                else
+                {
+                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "请在使用<#警告>时@出警告对象");
+                }
+            }
+            string data = clearstr;
+            string r = "[警告处理结果]\n" + e.Sender.Group.Name + "\n";
+            List<long> metioned = new List<long>();
+            foreach (long warn_qq in ats)
+            {
+                if (metioned.Contains(warn_qq))
+                {
+                    continue;
+                }
+
+                metioned.Add(warn_qq);
+                DataBase.me.recQQWarn(warn_qq, e.Sender.Id, weigh, clearstr + imgdata);
+                double warncount = DataBase.me.getQQWarnCount(warn_qq);
+                r += DataBase.me.getUserName(warn_qq) + " => " + warncount + "\n";
+            }
+            MainHolder.broadcaster.BroadcastToAdminGroup(r + "\n附件数：" + imgid);
+            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, r + "\n附件数：" + imgid);
+        }
+
         public static void Proc(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr)
         {
             if (clearstr == null || clearstr.Length < 2 || clearstr.IndexOf("#") != 0)
@@ -210,8 +277,8 @@ namespace tech.msgp.groupmanager.Code
                                 {
                                     if (long.TryParse(cmd[1], out long w_qq))
                                     {
-                                        int wcount = DataBase.me.getQQWarnCount(w_qq);
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, w_qq + "> 共" + wcount + "次");
+                                        double wcount = DataBase.me.getQQWarnCount(w_qq);
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, w_qq + "> " + wcount);
                                     }
                                     else
                                     {
@@ -220,72 +287,21 @@ namespace tech.msgp.groupmanager.Code
                                 }
                                 break;
                             case "#warn":
+                                    Warn(session, e, clearstr, double.Parse(cmd[2]));
+                                break;
                             case "#警告":
                                 {
-                                    string imgdata = "";
-                                    int imgid = 0;
-                                    List<string> pics = getAllPictures(e);
-                                    List<long> ats = getAllAts(e);
-                                    if (pics.Count > 0)
-                                    {
-                                        imgdata = "\n\n附件图片：";
-                                        foreach (string pic in pics)
-                                        {
-                                            if (pic == null)
-                                            {
-                                                continue;
-                                            }
-
-                                            imgid++;
-                                            imgdata += "\n[PICTURE]" + pic;
-                                        }
-                                    }
-                                    string eviid = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now).ToString();
-
-                                    if (ats.Count <= 0)
-                                    {
-                                        //考虑到不方便at的情况，使用QQ号
-                                        if (long.TryParse(cmd[1], out long w_qq))
-                                        {
-                                            DataBase.me.recQQWarn(w_qq, e.Sender.Id, clearstr.Substring(3) + imgdata);
-                                            int wcount = DataBase.me.getQQWarnCount(w_qq);
-                                            string iname = "";
-                                            try
-                                            {
-                                                iname = "<" + new UserData(w_qq).name + ">";
-                                            }
-                                            catch
-                                            {
-                                                iname = "* [" + w_qq + "]";
-                                            }
-                                            ManagementEvent me = new ManagementEvent(ManagementEvent.WARN, e.Sender.Id, w_qq, clearstr);
-                                            DataBase.me.recManagementEvents(me);
-                                            MainHolder.broadcaster.BroadcastToAdminGroup(iname + " #" + w_qq + "在" + e.Sender.Group.Name + "被警告\n第<" + wcount + ">次被警告\n附件数：" + imgid + "\n事件ID：" + me.id);
-                                        }
-                                        else
-                                        {
-                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "请在使用<#警告>时@出警告对象");
-                                        }
-
-                                        break;
-                                    }
-                                    string data = clearstr;
-                                    string r = "[警告处理结果]\n" + e.Sender.Group.Name + "\n";
-                                    List<long> metioned = new List<long>();
-                                    foreach (long warn_qq in ats)
-                                    {
-                                        if (metioned.Contains(warn_qq))
-                                        {
-                                            continue;
-                                        }
-
-                                        metioned.Add(warn_qq);
-                                        DataBase.me.recQQWarn(warn_qq, e.Sender.Id, clearstr + imgdata);
-                                        int warncount = DataBase.me.getQQWarnCount(warn_qq);
-                                        r += DataBase.me.getUserName(warn_qq) + " => 第" + warncount + "次\n";
-                                    }
-                                    MainHolder.broadcaster.BroadcastToAdminGroup(r + "\n附件数：" + imgid);
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, r + "\n附件数：" + imgid);
+                                    Warn(session, e, clearstr, 3);
+                                }
+                                break;
+                            case "#注意":
+                                {
+                                    Warn(session, e, clearstr, 2);
+                                }
+                                break;
+                            case "#提醒":
+                                {
+                                    Warn(session, e, clearstr, 1);
                                 }
                                 break;
                             case "#查用户警告":
