@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using tech.msgp.groupmanager.Code;
 using tech.msgp.groupmanager.Code.EventHandlers;
 
@@ -16,11 +17,12 @@ namespace CQ2IOT_HOST
     {
 
         public const string codeName = "ManaBot";
-        public const string version = "v0.1.48";
+        public const string version = " v0.1.52";
 
         private static string host;
         private static long me_qq;
         private static string key;
+        private static int port;
         private static string keyword = "";
         private static pThreadPool pool;
         private static string authenti;
@@ -41,6 +43,14 @@ namespace CQ2IOT_HOST
             host = config["mirai"].Value<string>("server");
             me_qq = config["mirai"].Value<long>("user");
             key = config["mirai"].Value<string>("key");
+            try
+            {
+                port = config["mirai"].Value<int>("port");
+            }
+            catch
+            {
+                port = 8080;
+            }
             authenti = config["auth"].Value<string>("name");
             MainHolder.LiveRoom = config["bili"].Value<int>("roomid");
             MainHolder.BiliWatchUIDs = new List<int>();
@@ -64,10 +74,11 @@ namespace CQ2IOT_HOST
                 {
                     //Console.Title = "ManageBot By Developer_ken - Initializing...";
                     logger("MainThread", "Pushing up the engine...", ConsoleColor.Black, ConsoleColor.Green);
-                    MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, 8080, key);
+                    MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, key);
                     MainHolder.session = new MiraiHttpSession();
                     MainHolder.session.ConnectAsync(options, me_qq).Wait();
                     //MainHolder.session.GetFriendListAsync().Wait();
+                    MainHolder.session.DisconnectedEvt += Session_DisconnectedEvt;
                     logger("MainThread", "BotAPI is up.", ConsoleColor.Black, ConsoleColor.Green);
                     pool = new pThreadPool();
                     MainHolder.pool = pool;
@@ -193,6 +204,25 @@ namespace CQ2IOT_HOST
                     //throw;
                 }
             }
+        }
+
+        private async static System.Threading.Tasks.Task<bool> Session_DisconnectedEvt(MiraiHttpSession sender, Exception e)
+        {
+            logger("Connection", e.Message);
+            while (true) try
+                {
+                    logger("Connection", "Reconnecting...");
+                    MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, key);
+                    await sender.ConnectAsync(options, me_qq);
+                    MainHolder.broadcaster.BroadcastToAdminGroup("[断线重连]\n诊断报告：" + e.Message + "\n" + e.StackTrace);
+                    break;
+                }
+                catch (Exception err)
+                {
+                    logger("Connection", err.Message);
+                    await Task.Delay(1000);
+                }
+            return false;
         }
 
         //string threadpool = "";
