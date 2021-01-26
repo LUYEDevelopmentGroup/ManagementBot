@@ -289,6 +289,12 @@ namespace tech.msgp.groupmanager.Code
                             case "#warn":
                                     Warn(session, e, clearstr, double.Parse(cmd[2]));
                                 break;
+                            case "#weigh":
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                    new AtMessage(e.Sender.Id),
+                                    new PlainMessage("您的权重为<"+DataBase.me.getOPWeigh(e.Sender.Id)+">\n该值用于稳定违规处罚力度，可能会动态调整。")
+                                    });
+                                break;
                             case "#警告":
                                 {
                                     Warn(session, e, clearstr, 3);

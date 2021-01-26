@@ -39,6 +39,76 @@ namespace tech.msgp.groupmanager.Code
                         string[] cmd = msgtext.Split(' ');
                         switch (cmd[0])
                         {
+                            case "#dreg":
+                                {
+                                    if (cmd.Length < 3)
+                                    {
+                                        rep.reply("用法：\n" + cmd[0] + " QQ 角色名 密码");
+                                        break;
+                                    }
+
+                                    long qq = long.Parse(cmd[1]);
+                                    string name = cmd[2];
+                                    string passwd = cmd[3];
+                                    if (DBHandler.me.isRegistered(qq))
+                                    {
+                                        rep.reply("QQ已经被绑定到一个MC账号，我们不允许重复注册。如果需要销号，请联系管理员。");
+                                        break;
+                                    }
+                                    else if (DBHandler.me.isNameTaken(name))
+                                    {
+                                        rep.reply("这个用户名已经有人用了，换一个试试吧！");
+                                        break;
+                                    }
+                                    else if (passwd.Length < 5)
+                                    {
+                                        rep.reply("密码长度必须大于等于5位");
+                                        break;
+                                    }
+                                    else if (CheckEncode(name))
+                                    {
+                                        rep.reply("用户名仅允许(A-Z,a-z,0-9,_)，不允许特殊符号和中文。");
+                                        break;
+                                    }
+                                    bool succeed = true;
+                                    bool mojang = false;
+                                    succeed = succeed && MCServer.DBHandler.me.addUser(qq, passwd);
+                                    succeed = succeed && MCServer.DBHandler.me.addProfile(name, qq, out mojang);
+                                    if (succeed)
+                                    {
+                                        {
+                                            string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
+                                            string pname = DBHandler.me.getUserOwnedProfileName(qq);
+                                            List<Texture> l = new List<Texture>();
+                                            Dictionary<string, string> ddd = new Dictionary<string, string>();
+                                            ddd.Add("model", "slim");
+                                            Texture tt = new Texture("https://storage.microstorm.tech/skins/default.png", "SKIN", ddd);
+                                            l.Add(tt);
+                                            SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(qq), DBHandler.me.getUserOwnedProfileName(qq), l);
+                                            if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
+                                            {
+                                                rep.reply("注册成功。使用以下信息登录：\n" +
+                                         "用户名：" + qq + "@qq.com\n" +
+                                         "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
+                                                MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册" + (mojang ? "\n[正版UUID]" : ""));
+                                            }
+                                            else
+                                            {
+                                                rep.reply("注册成功，[但设置默认皮肤时发生了一些问题]。\n联系管理解决后,使用以下信息登录：\n" +
+                                         "用户名：" + qq + "@qq.com\n" +
+                                         "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
+                                                MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册，但默认皮肤未能写入。【须进一步操作】" + (mojang ? "\n[正版UUID]" : ""));
+                                            }
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        rep.reply("无法与中央数据库通讯。请稍后重试。\n如果该问题持续出现，请联系@鸡蛋<1250542735>");
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册时发生错误。数据库连接不稳定。");
+                                    }
+                                }
+                                break;
                             case "#reg":
                             case "#注册":
                                 {
