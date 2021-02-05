@@ -39,76 +39,7 @@ namespace tech.msgp.groupmanager.Code
                         string[] cmd = msgtext.Split(' ');
                         switch (cmd[0])
                         {
-                            case "#dreg":
-                                {
-                                    if (cmd.Length < 3)
-                                    {
-                                        rep.reply("用法：\n" + cmd[0] + " QQ 角色名 密码");
-                                        break;
-                                    }
 
-                                    long qq = long.Parse(cmd[1]);
-                                    string name = cmd[2];
-                                    string passwd = cmd[3];
-                                    if (DBHandler.me.isRegistered(qq))
-                                    {
-                                        rep.reply("QQ已经被绑定到一个MC账号，我们不允许重复注册。如果需要销号，请联系管理员。");
-                                        break;
-                                    }
-                                    else if (DBHandler.me.isNameTaken(name))
-                                    {
-                                        rep.reply("这个用户名已经有人用了，换一个试试吧！");
-                                        break;
-                                    }
-                                    else if (passwd.Length < 5)
-                                    {
-                                        rep.reply("密码长度必须大于等于5位");
-                                        break;
-                                    }
-                                    else if (CheckEncode(name))
-                                    {
-                                        rep.reply("用户名仅允许(A-Z,a-z,0-9,_)，不允许特殊符号和中文。");
-                                        break;
-                                    }
-                                    bool succeed = true;
-                                    bool mojang = false;
-                                    succeed = succeed && MCServer.DBHandler.me.addUser(qq, passwd);
-                                    succeed = succeed && MCServer.DBHandler.me.addProfile(name, qq, out mojang);
-                                    if (succeed)
-                                    {
-                                        {
-                                            string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
-                                            string pname = DBHandler.me.getUserOwnedProfileName(qq);
-                                            List<Texture> l = new List<Texture>();
-                                            Dictionary<string, string> ddd = new Dictionary<string, string>();
-                                            ddd.Add("model", "slim");
-                                            Texture tt = new Texture("https://storage.microstorm.tech/skins/default.png", "SKIN", ddd);
-                                            l.Add(tt);
-                                            SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(qq), DBHandler.me.getUserOwnedProfileName(qq), l);
-                                            if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
-                                            {
-                                                rep.reply("注册成功。使用以下信息登录：\n" +
-                                         "用户名：" + qq + "@qq.com\n" +
-                                         "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
-                                                MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册" + (mojang ? "\n[正版UUID]" : ""));
-                                            }
-                                            else
-                                            {
-                                                rep.reply("注册成功，[但设置默认皮肤时发生了一些问题]。\n联系管理解决后,使用以下信息登录：\n" +
-                                         "用户名：" + qq + "@qq.com\n" +
-                                         "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
-                                                MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册，但默认皮肤未能写入。【须进一步操作】" + (mojang ? "\n[正版UUID]" : ""));
-                                            }
-                                        }
-
-                                    }
-                                    else
-                                    {
-                                        rep.reply("无法与中央数据库通讯。请稍后重试。\n如果该问题持续出现，请联系@鸡蛋<1250542735>");
-                                        MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册时发生错误。数据库连接不稳定。");
-                                    }
-                                }
-                                break;
                             case "#reg":
                             case "#注册":
                                 {
@@ -225,21 +156,49 @@ namespace tech.msgp.groupmanager.Code
                                 break;
                             case "#UUID_RESET":
                             case "#离线化UUID":
-                                string __uuid = DBHandler.me.getUserOwnedProfileUUID(rep.qq);
-                                string __pname = DBHandler.me.getUserOwnedProfileName(rep.qq);
-                                bool mmojang;
-                                string nsu = DBHandler.genNoSlashUUID(__pname, out mmojang);
-                                string su = DBHandler.genSlashUUID(__pname);
-                                if (DBHandler.me.changeProfileUUID(__uuid, nsu, su) && mmojang)
                                 {
-                                    rep.reply("您(" + __pname + ")的UUID已更新：\n旧UUID：" + __uuid + "\n新UUID：" + nsu);
-                                    MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n√ 通过");
-                                }
-                                else
-                                {
-                                    rep.reply("您(" + __pname + ")的UUID无法更新。数据库出错或非Mojang账号\n旧UUID：" + __uuid);
-                                    MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n× 失败");
+                                    string __uuid = DBHandler.me.getUserOwnedProfileUUID(rep.qq);
+                                    string __pname = DBHandler.me.getUserOwnedProfileName(rep.qq);
+                                    bool mmojang;
+                                    string nsu = DBHandler.genNoSlashUUID(__pname, out mmojang);
+                                    string su = DBHandler.genSlashUUID(__pname);
+                                    if (DBHandler.me.changeProfileUUID(__uuid, nsu, su) && mmojang)
+                                    {
+                                        rep.reply("您(" + __pname + ")的UUID已更新：\n旧UUID：" + __uuid + "\n新UUID：" + nsu);
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n√ 通过");
+                                    }
+                                    else
+                                    {
+                                        rep.reply("您(" + __pname + ")的UUID无法更新。数据库出错或非Mojang账号\n旧UUID：" + __uuid);
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n× 失败");
 
+                                    }
+                                }
+                                break;
+                            case "#cloneuuid":
+                                {
+                                    string __uuid;
+                                    if (cmd.Length == 3)
+                                    {
+                                        __uuid = DBHandler.me.getUserOwnedProfileUUID(long.Parse(cmd[2]));
+                                    }
+                                    else
+                                    {
+                                        __uuid = DBHandler.me.getUserOwnedProfileUUID(rep.qq);
+                                    }
+                                    string __pname = cmd[1];
+                                    bool mmojang;
+                                    string nsu = DBHandler.genNoSlashUUID(__pname, out mmojang);
+                                    string su = DBHandler.genSlashUUID(__pname);
+                                    if (!mmojang)
+                                    {
+                                        rep.reply("无法获取" + __pname + "的UUID，因此无法克隆。");
+                                    }
+                                    else
+                                    {
+                                        rep.reply("您申请克隆" + __pname + "的UUID，请等待管理员操作。");
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n#cloneuuid " + __pname + " " + rep.qq + "");
+                                    }
                                 }
                                 break;
                             case "#cape":
@@ -262,6 +221,103 @@ namespace tech.msgp.groupmanager.Code
                             string[] cmd = msgtext.Split(' ');
                             switch (cmd[0])
                             {
+                                case "#dreg":
+                                    {
+                                        if (cmd.Length < 3)
+                                        {
+                                            rep.reply("用法：\n" + cmd[0] + " QQ 角色名 密码");
+                                            break;
+                                        }
+
+                                        long qq = long.Parse(cmd[1]);
+                                        string name = cmd[2];
+                                        string passwd = cmd[3];
+                                        if (DBHandler.me.isRegistered(qq))
+                                        {
+                                            rep.reply("QQ已经被绑定到一个MC账号，我们不允许重复注册。如果需要销号，请联系管理员。");
+                                            break;
+                                        }
+                                        else if (DBHandler.me.isNameTaken(name))
+                                        {
+                                            rep.reply("这个用户名已经有人用了，换一个试试吧！");
+                                            break;
+                                        }
+                                        else if (passwd.Length < 5)
+                                        {
+                                            rep.reply("密码长度必须大于等于5位");
+                                            break;
+                                        }
+                                        else if (CheckEncode(name))
+                                        {
+                                            rep.reply("用户名仅允许(A-Z,a-z,0-9,_)，不允许特殊符号和中文。");
+                                            break;
+                                        }
+                                        bool succeed = true;
+                                        bool mojang = false;
+                                        succeed = succeed && MCServer.DBHandler.me.addUser(qq, passwd);
+                                        succeed = succeed && MCServer.DBHandler.me.addProfile(name, qq, out mojang);
+                                        if (succeed)
+                                        {
+                                            {
+                                                string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
+                                                string pname = DBHandler.me.getUserOwnedProfileName(qq);
+                                                List<Texture> l = new List<Texture>();
+                                                Dictionary<string, string> ddd = new Dictionary<string, string>();
+                                                ddd.Add("model", "slim");
+                                                Texture tt = new Texture("https://storage.microstorm.tech/skins/default.png", "SKIN", ddd);
+                                                l.Add(tt);
+                                                SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(qq), DBHandler.me.getUserOwnedProfileName(qq), l);
+                                                if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
+                                                {
+                                                    rep.reply("注册成功。使用以下信息登录：\n" +
+                                             "用户名：" + qq + "@qq.com\n" +
+                                             "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
+                                                    MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册" + (mojang ? "\n[正版UUID]" : ""));
+                                                }
+                                                else
+                                                {
+                                                    rep.reply("注册成功，[但设置默认皮肤时发生了一些问题]。\n联系管理解决后,使用以下信息登录：\n" +
+                                             "用户名：" + qq + "@qq.com\n" +
+                                             "密码：" + passwd + (mojang ? "\n[正版UUID]" : ""));
+                                                    MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册，但默认皮肤未能写入。【须进一步操作】" + (mojang ? "\n[正版UUID]" : ""));
+                                                }
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            rep.reply("无法与中央数据库通讯。请稍后重试。\n如果该问题持续出现，请联系@鸡蛋<1250542735>");
+                                            MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n玩家<" + name + ">在认证服务器中注册时发生错误。数据库连接不稳定。");
+                                        }
+                                    }
+                                    break;
+                                case "#cloneuuid":
+                                    {
+                                        string __uuid;
+                                        if (cmd.Length == 3)
+                                        {
+                                            __uuid = DBHandler.me.getUserOwnedProfileUUID(long.Parse(cmd[2]));
+                                        }
+                                        else
+                                        {
+                                            __uuid = DBHandler.me.getUserOwnedProfileUUID(rep.qq);
+                                        }
+                                        string __pname = cmd[1];
+                                        bool mmojang;
+                                        string nsu = DBHandler.genNoSlashUUID(__pname, out mmojang);
+                                        string su = DBHandler.genSlashUUID(__pname);
+                                        if (DBHandler.me.changeProfileUUID(__uuid, nsu, su) && mmojang)
+                                        {
+                                            rep.reply("您(" + __pname + ")的UUID已更新：\n旧UUID：" + __uuid + "\n新UUID：" + nsu);
+                                            MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n√ 通过");
+                                        }
+                                        else
+                                        {
+                                            rep.reply("您(" + __pname + ")的UUID无法更新。数据库出错或非Mojang账号\n旧UUID：" + __uuid);
+                                            MainHolder.broadcaster.BroadcastToAdminGroup("[MC AUTH SERVER]\n" + __pname + "发起了UUID更新\n旧UUID：" + __uuid + "\n新UUID：" + nsu + "\n× 失败");
+                                        }
+                                    }
+                                    break;
                                 case "#查重":
                                     {
                                         rep.reply("====查重开始====\n" +
@@ -374,70 +430,72 @@ namespace tech.msgp.groupmanager.Code
                                     break;
                                 case "#cape":
                                 case "#披风":
-                                    long qq = -1;
-                                    if (cmd.Length < 3)
                                     {
-                                        if (!long.TryParse(cmd[1], out qq))
+                                        long qq = -1;
+                                        if (cmd.Length < 3)
                                         {
-                                            rep.reply("！正在操作您自己的账号");
-                                            qq = rep.qq;
+                                            if (!long.TryParse(cmd[1], out qq))
+                                            {
+                                                rep.reply("！正在操作您自己的账号");
+                                                qq = rep.qq;
+                                            }
+                                            else
+                                            if (cmd.Length < 2)
+                                            {
+                                                rep.reply("用法：\n" + cmd[0] + " (玩家QQ) 【图片】");
+                                                break;
+                                            }
                                         }
-                                        else
-                                        if (cmd.Length < 2)
+                                        if (qq < 0) qq = long.Parse(cmd[1]);
+                                        /*
+                                        string fName = e.Message.ReceiveImage(0);
+                                        fName = e.CQApi.ReceiveImage(fName);
+                                        if (!MCServer.SkinHandler.checkPick(fName))
                                         {
-                                            rep.reply("用法：\n" + cmd[0] + " (玩家QQ) 【图片】");
+                                            e.FromQQ.SendPrivateMessage("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
                                             break;
                                         }
-                                    }
-                                    if (qq < 0) qq = long.Parse(cmd[1]);
-                                    /*
-                                    string fName = e.Message.ReceiveImage(0);
-                                    fName = e.CQApi.ReceiveImage(fName);
-                                    if (!MCServer.SkinHandler.checkPick(fName))
-                                    {
-                                        e.FromQQ.SendPrivateMessage("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
-                                        break;
-                                    }
-                                    string hash = MCServer.SkinHandler.getPictureHash(fName);
-                                    string savepath = "Y:/skin/CAPE/" + hash + ".png";
-                                    e.CQLog.Info("MC皮肤", "图片存储到" + "Y:/skin/CAPE" + hash + ".png");
-                                    if (!Directory.Exists("Y:/skin/CAPE"))
-                                    {
-                                        e.CQLog.Warning("MC皮肤", "转储目录无效");
-                                    }
-                                    if (!File.Exists(savepath))
-                                    {
-                                        e.CQLog.Warning("MC皮肤", "文件已存在");
-                                    }
-                                    SkinHandler.turnPicture(fName, savepath);
-                                    string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
-                                    string pname = DBHandler.me.getUserOwnedProfileName(qq);
-                                    string oldtdata = DBHandler.me.getProfileUUIDTexture(uuid);
-                                    List<Texture> l = new List<Texture>();
-                                    if (oldtdata != null)
-                                    {
-                                        JObject oldtexture = (JObject)JsonConvert.DeserializeObject(oldtdata);
-                                        if (oldtexture["textures"]["SKIN"] != null)
+                                        string hash = MCServer.SkinHandler.getPictureHash(fName);
+                                        string savepath = "Y:/skin/CAPE/" + hash + ".png";
+                                        e.CQLog.Info("MC皮肤", "图片存储到" + "Y:/skin/CAPE" + hash + ".png");
+                                        if (!Directory.Exists("Y:/skin/CAPE"))
                                         {
-                                            Dictionary<string, string> ddd = new Dictionary<string, string>();
-                                            ddd.Add("model", "slim");
-                                            Texture tt = new Texture(oldtexture["textures"]["SKIN"].Value<string>("url"), "SKIN", ddd);
-                                            l.Add(tt);
+                                            e.CQLog.Warning("MC皮肤", "转储目录无效");
                                         }
+                                        if (!File.Exists(savepath))
+                                        {
+                                            e.CQLog.Warning("MC皮肤", "文件已存在");
+                                        }
+                                        SkinHandler.turnPicture(fName, savepath);
+                                        string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
+                                        string pname = DBHandler.me.getUserOwnedProfileName(qq);
+                                        string oldtdata = DBHandler.me.getProfileUUIDTexture(uuid);
+                                        List<Texture> l = new List<Texture>();
+                                        if (oldtdata != null)
+                                        {
+                                            JObject oldtexture = (JObject)JsonConvert.DeserializeObject(oldtdata);
+                                            if (oldtexture["textures"]["SKIN"] != null)
+                                            {
+                                                Dictionary<string, string> ddd = new Dictionary<string, string>();
+                                                ddd.Add("model", "slim");
+                                                Texture tt = new Texture(oldtexture["textures"]["SKIN"].Value<string>("url"), "SKIN", ddd);
+                                                l.Add(tt);
+                                            }
+                                        }
+                                        Dictionary<string, string> d = new Dictionary<string, string>();
+                                        Texture t = new Texture("http://textures.mc.microstorm.tech:15551/CAPE/" + hash, "CAPE", d);
+                                        l.Add(t);
+                                        SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(rep.qq), DBHandler.me.getUserOwnedProfileName(rep.qq), l);
+                                        if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
+                                        {
+                                            e.FromQQ.SendPrivateMessage("操作成功，已为玩家" + pname + "设置披风。\n" + "http://textures.mc.microstorm.tech:15551/CAPE/" + hash);
+                                        }
+                                        else
+                                        {
+                                            e.FromQQ.SendPrivateMessage("操作失败");
+                                        }
+                                        */
                                     }
-                                    Dictionary<string, string> d = new Dictionary<string, string>();
-                                    Texture t = new Texture("http://textures.mc.microstorm.tech:15551/CAPE/" + hash, "CAPE", d);
-                                    l.Add(t);
-                                    SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(rep.qq), DBHandler.me.getUserOwnedProfileName(rep.qq), l);
-                                    if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
-                                    {
-                                        e.FromQQ.SendPrivateMessage("操作成功，已为玩家" + pname + "设置披风。\n" + "http://textures.mc.microstorm.tech:15551/CAPE/" + hash);
-                                    }
-                                    else
-                                    {
-                                        e.FromQQ.SendPrivateMessage("操作失败");
-                                    }
-                                    */
                                     break;
                                 default:
                                     break;
@@ -545,7 +603,7 @@ namespace tech.msgp.groupmanager.Code
         {
             StringBuilder str = new StringBuilder();
             List<string> pic = new List<string>();
-            foreach(IMessageBase msg in chain)
+            foreach (IMessageBase msg in chain)
             {
                 switch (msg.Type)
                 {
