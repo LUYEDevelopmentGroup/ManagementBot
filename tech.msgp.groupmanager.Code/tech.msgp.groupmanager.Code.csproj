@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BiliApi\BiliApi.csproj" />
+    <ProjectReference Include="..\BiliApi.Net\BiliApi.csproj" />
     <ProjectReference Include="..\BiliveDanmakuCli\BiliveDanmakuCli.csproj" />
     <ProjectReference Include="..\DiscordAPI\DiscordAPI.csproj" />
     <ProjectReference Include="..\MinecraftClient\MinecraftClient.csproj" />
