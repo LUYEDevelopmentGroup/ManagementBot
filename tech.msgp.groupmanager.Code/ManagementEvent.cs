@@ -39,7 +39,7 @@ namespace tech.msgp.groupmanager.Code
             this.affected = affected;
             this.type = type;
             this.reason = reason;
-            id = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now);
+            id = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now);
         }
 
         #region 等量比较实现

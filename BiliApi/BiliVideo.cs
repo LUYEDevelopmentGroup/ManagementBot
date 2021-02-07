@@ -3,9 +3,12 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
-    internal class BiliVideo
+    /// <summary>
+    /// Bilibili视频对象
+    /// </summary>
+    public class BiliVideo
     {
         public string vid;
         public string title;
@@ -13,9 +16,10 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         public bool loaded = false;
         public BiliUser owner;
         public List<BiliUser> participants;
-
-        public BiliVideo(string vid)
+        private ThirdPartAPIs sess;
+        public BiliVideo(string vid, ThirdPartAPIs sess)
         {
+            this.sess = sess;
             this.vid = vid;
             participants = new List<BiliUser>();
             fetchVideoInfo();
@@ -24,7 +28,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         {
             try
             {
-                string js = ThirdPartAPIs.getBiliVideoInfoJson(vid.ToString());
+                string js = sess.getBiliVideoInfoJson(vid.ToString());
                 JObject json = (JObject)JsonConvert.DeserializeObject(js);
                 if (json == null || json.Value<int>("code") != 0)
                 {
@@ -41,7 +45,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
                 {
                     foreach (JObject jb in parti)
                     {
-                        participants.Add(new BiliUser(jb.Value<int>("mid")));
+                        participants.Add(new BiliUser(jb.Value<int>("mid"),sess));
                     }
                 }
 

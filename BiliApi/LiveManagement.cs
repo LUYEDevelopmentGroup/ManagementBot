@@ -4,26 +4,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
+    /// <summary>
+    /// Bilibili直播间管理工具类
+    /// </summary>
     public class LiveManagement
     {
         private readonly BiliLiveRoom blr;
+        private ThirdPartAPIs sess;
         public LiveManagement(BiliLiveRoom blr)
         {
             this.blr = blr;
+            this.sess = blr.sess;
         }
 
         public bool banUID(int uid, int len = 1)
         {
-            string result = ThirdPartAPIs.banUIDfromroom(blr.roomid, uid, len);
+            string result = sess.banUIDfromroom(blr.roomid, uid, len);
             JObject jb = (JObject)JsonConvert.DeserializeObject(result);
             return (jb.Value<int>("code") == 0);
         }
 
         public bool debanBID(int bid)
         {
-            string result = ThirdPartAPIs.debanBIDfromroom(blr.roomid, bid);
+            string result = sess.debanBIDfromroom(blr.roomid, bid);
             JObject jb = (JObject)JsonConvert.DeserializeObject(result);
             return (jb.Value<int>("code") == 0);
         }
@@ -35,7 +40,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
             int page = 1;
             do
             {
-                string result = ThirdPartAPIs.getRoomBanlist(blr.roomid, page);
+                string result = sess.getRoomBanlist(blr.roomid, page);
                 if (result == null)
                 {
                     break;

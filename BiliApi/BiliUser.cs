@@ -2,11 +2,14 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
+    /// <summary>
+    /// Bilibili用户对象
+    /// </summary>
     public class BiliUser
     {
-        public static Dictionary<int, BiliUser> userlist;
+        public static Dictionary<int, BiliUser> userlist = new Dictionary<int, BiliUser>();
         public int uid { get; private set; }
         public string name { get; private set; }
         public string sex { get; private set; }
@@ -18,15 +21,16 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         public int rank { get; private set; }
         public int fans { get; private set; }
         public JObject raw_json { get; private set; }
+        private ThirdPartAPIs sess;
 
-        public static BiliUser getUser(int uid)
+        public static BiliUser getUser(int uid, ThirdPartAPIs sess)
         {
             if (userlist.ContainsKey(uid))
             {
                 return userlist[uid];
             }
 
-            return new BiliUser(uid);
+            return new BiliUser(uid, sess);
         }
 
         /// <summary>
@@ -42,7 +46,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         /// <param name="face"></param>
         /// <param name="level"></param>
         /// <param name="rank"></param>
-        public BiliUser(int uid, string name, string sex, string sign, bool fans_badge, int coins, string face, int level, int rank)
+        public BiliUser(int uid, string name, string sex, string sign, bool fans_badge, int coins, string face, int level, int rank, ThirdPartAPIs sess)
         {
             this.uid = uid;
             this.name = name;
@@ -57,7 +61,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
             {
                 userlist.Remove(uid);
             }
-
+            this.sess = sess;
             userlist.Add(uid, this);
         }
 
@@ -66,11 +70,12 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         /// 系统会自己去抓数据
         /// </summary>
         /// <param name="uid"></param>
-        public BiliUser(int uid, bool nocache = false)
+        public BiliUser(int uid, ThirdPartAPIs sess, bool nocache = false)
         {
             try
             {
-                raw_json = (JObject)JsonConvert.DeserializeObject(ThirdPartAPIs.getBiliUserInfoJson(uid));
+                this.sess = sess;
+                raw_json = (JObject)JsonConvert.DeserializeObject(sess.getBiliUserInfoJson(uid));
                 this.uid = int.Parse(raw_json["data"]["mid"].ToString());
                 name = raw_json["data"]["name"].ToString();
                 sex = raw_json["data"]["sex"].ToString();

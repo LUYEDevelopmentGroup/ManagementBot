@@ -1,8 +1,11 @@
 ﻿using System;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
-    internal class TimestampHandler
+    /// <summary>
+    /// 时间戳处理工具类
+    /// </summary>
+    public class TimestampHandler
     {
         public static DateTime GetDateTime(long strLongTime)
         {

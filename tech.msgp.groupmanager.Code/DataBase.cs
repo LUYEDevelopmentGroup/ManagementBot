@@ -403,7 +403,7 @@ namespace tech.msgp.groupmanager.Code
 
         public long openKickVote(long op, long target, long group, int targetvotes)
         {
-            long idd = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now);
+            long idd = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now);
             Dictionary<string, string> args = new Dictionary<string, string>
             {
                 { "@op", op.ToString() },
@@ -425,7 +425,7 @@ namespace tech.msgp.groupmanager.Code
         /*
         public bool scheduletask(long op, long target, long group, int targetvotes)
         {
-            long idd = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now);
+            long idd = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now);
             Dictionary<string, string> args = new Dictionary<string, string>();
             args.Add("@op", op.ToString());
             args.Add("@target", target.ToString());

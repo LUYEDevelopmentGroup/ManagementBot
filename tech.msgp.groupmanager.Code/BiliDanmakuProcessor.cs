@@ -6,8 +6,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using tech.msgp.groupmanager.Code.BiliAPI;
-using tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage;
+using BiliApi;
+using BiliApi.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code
 {

@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliAPI;
+using tech.msgp.groupmanager.Code.BiliApi;
 
 namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
 {

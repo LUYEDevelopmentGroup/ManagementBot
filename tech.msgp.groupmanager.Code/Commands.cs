@@ -3,8 +3,8 @@ using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using tech.msgp.groupmanager.Code.BiliAPI;
-using tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage;
+using tech.msgp.groupmanager.Code.BiliApi;
+using tech.msgp.groupmanager.Code.BiliApi.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -61,7 +61,7 @@ namespace tech.msgp.groupmanager.Code
                     imgdata += "\n[PICTURE]" + pic;
                 }
             }
-            string eviid = BiliAPI.TimestampHandler.GetTimeStamp16(DateTime.Now).ToString();
+            string eviid = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now).ToString();
 
             if (ats.Count <= 0)
             {
@@ -376,7 +376,7 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "签名有效√\n" +
                                             "颁发给UID:" + uid + "" + ((qqid > 0 ? "(绑定QQ:[GETUSERNICK(" + qqid + ")] #" + qqid + ")" : "(未绑定QQ)")) + "\n" +
                                             "用以证明购买 " + dppword + "*" + len + " 月\n" +
-                                            "颁发时间:" + BiliAPI.TimestampHandler.GetDateTime(tstamp) + "\n" +
+                                            "颁发时间:" + BiliApi.TimestampHandler.GetDateTime(tstamp) + "\n" +
                                             "\n" +
                                             "⚠该凭据仅表明以上购买信息真实有效，不做其它用途");
                                     }
@@ -414,7 +414,7 @@ namespace tech.msgp.groupmanager.Code
                                         dpword = "舰长";
                                         break;
                                 }
-                                BiliDanmakuProcessor.SendKeyToCrewMember(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]), BiliAPI.TimestampHandler.GetTimeStamp(DateTime.Now), dpword, (cmd[4] != null && (cmd[4] == "新" || cmd[4] == "1")));
+                                BiliDanmakuProcessor.SendKeyToCrewMember(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]), BiliApi.TimestampHandler.GetTimeStamp(DateTime.Now), dpword, (cmd[4] != null && (cmd[4] == "新" || cmd[4] == "1")));
                                 break;
                             case "#同意":
                             case "#pass":
@@ -624,7 +624,7 @@ namespace tech.msgp.groupmanager.Code
                                 MainHolder.checkCrewGroup();
                                 break;
                             case "#debug_liveban":
-                                string rpll = BiliAPI.ThirdPartAPIs.banUIDfromroom(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]));
+                                string rpll = BiliApi.ThirdPartAPIs.banUIDfromroom(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]));
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, rpll);
                                 break;
                             case "#debug_trigger_banrefresh":

@@ -2,9 +2,12 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
-    internal class AVFinder
+    /// <summary>
+    /// 从字符串中寻找AV和BV号的工具类
+    /// </summary>
+    public class AVFinder
     {
         public static string _getLocation(string url)
         {

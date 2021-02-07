@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
+namespace BiliApi.BiliPrivMessage
 {
     public class PrivMessage : IComparable
     {
@@ -12,11 +12,11 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
         public string content;
         public JObject content_json;
 
-        public PrivMessage(JToken json)
+        public PrivMessage(JToken json,ThirdPartAPIs sess)
         {
             recieiver_id = json.Value<int>("receiver_id");
             timestamp = json.Value<int>("timestamp");
-            talker = BiliUser.getUser(json.Value<int>("sender_uid"));
+            talker = BiliUser.getUser(json.Value<int>("sender_uid"),sess);
             msgtype = json.Value<int>("msg_type");
             msg_seqno = json.Value<int>("msg_seqno");
             msg_key = json.Value<long>("msg_key");

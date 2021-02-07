@@ -418,7 +418,7 @@ namespace tech.msgp.groupmanager.Code
                                         rep.reply("签名有效√\n" +
                                             "颁发给UID:" + uid + "\n" +
                                             "用以证明购买 " + dpword + "*" + len + " 月\n" +
-                                            "颁发时间:" + BiliAPI.TimestampHandler.GetDateTime(tstamp) + "\n" +
+                                            "颁发时间:" + BiliApi.TimestampHandler.GetDateTime(tstamp) + "\n" +
                                             "\n" +
                                             "⚠该凭据仅表明以上购买信息真实有效，不做其它用途");
                                     }

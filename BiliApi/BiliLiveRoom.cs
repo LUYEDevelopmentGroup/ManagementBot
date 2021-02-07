@@ -1,12 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using BiliApi.Auth;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
     //https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=2064239
+    /// <summary>
+    /// Bilibili直播间对象
+    /// </summary>
     public class BiliLiveRoom
     {
         public int roomid;
@@ -21,9 +25,29 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         public static short STATUS_OFFLINE = 0;
         public static short STATUS_VEDIOPLAY = 2;
         public LiveManagement manage;
+        public ThirdPartAPIs sess;
 
-        public BiliLiveRoom(int roomid)
+        public BiliLiveRoom(int roomid,ThirdPartAPIs sess)
         {
+            this.sess = sess;
+            string data = ThirdPartAPIs._get("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=" + roomid);
+            JObject json = (JObject)JsonConvert.DeserializeObject(data);
+            roomid = json["data"]["room_info"].Value<int>("room_id");
+            shortid = json["data"]["room_info"].Value<int>("short_id");
+            title = json["data"]["room_info"].Value<string>("title");
+            cover = json["data"]["room_info"].Value<string>("cover");
+            tags = json["data"]["room_info"].Value<string>("tags").Split(',');
+            keyframe = json["data"]["room_info"].Value<string>("keyframe");
+            status = json["data"]["room_info"].Value<short>("live_status");
+            lid = json["data"]["room_info"].Value<int>("live_start_time");
+            this.roomid = roomid;
+            manage = new LiveManagement(this);
+            //keyframe
+        }
+
+        public BiliLiveRoom(int roomid, IAuthBase auth)
+        {
+            this.sess = new ThirdPartAPIs(auth.GetLoginCookies());
             string data = ThirdPartAPIs._get("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=" + roomid);
             JObject json = (JObject)JsonConvert.DeserializeObject(data);
             roomid = json["data"]["room_info"].Value<int>("room_id");
@@ -72,7 +96,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
             }
             lastsend_dmk = DateTime.Now;
             Dictionary<string, string> kvs = new Dictionary<string, string>();
-            CookieCollection ck = DataBase.me.getBiliLoginCookie().GetCookies(new Uri("https://www.bilibili.com"));
+            CookieCollection ck = sess.CookieContext;
             JObject job = new JObject();
             kvs.Add("color", color.ToString());
             kvs.Add("fontsize", fsize.ToString());
@@ -83,7 +107,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
             kvs.Add("bubble", bubble.ToString());
             kvs.Add("csrf_token", ck["bili_jct"].Value);
             kvs.Add("csrf", ck["bili_jct"].Value);
-            string response = ThirdPartAPIs._post_with_cookies("https://api.live.bilibili.com/msg/send", kvs);
+            string response = sess._post_with_cookies("https://api.live.bilibili.com/msg/send", kvs);
             if (response == "")
             {
                 return false;

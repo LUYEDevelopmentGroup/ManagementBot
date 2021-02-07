@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliAPI;
+using tech.msgp.groupmanager.Code.BiliApi;
 using tech.msgp.groupmanager.Code.TCPMessageProcessor;
 
 namespace tech.msgp.groupmanager.Code

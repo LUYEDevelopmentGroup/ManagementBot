@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliAPI;
+using tech.msgp.groupmanager.Code.BiliApi;
 
 namespace tech.msgp.groupmanager.Code
 {

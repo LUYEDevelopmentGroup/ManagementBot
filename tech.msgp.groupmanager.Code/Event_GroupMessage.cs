@@ -5,7 +5,7 @@ using Mirai_CSharp.Plugin.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Xml;
-using tech.msgp.groupmanager.Code.BiliAPI;
+using tech.msgp.groupmanager.Code.BiliApi;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -119,7 +119,7 @@ namespace tech.msgp.groupmanager.Code
                                                     {
                                                         try
                                                         {
-                                                            string bvn = BiliAPI.AVFinder.bvFromB23url(doc["msg"].GetAttribute("url"));
+                                                            string bvn = BiliApi.AVFinder.bvFromB23url(doc["msg"].GetAttribute("url"));
                                                             if (bvn != null)//真的是视频分享
                                                             {
                                                                 processVideoBilibili(e, bvn);
@@ -139,7 +139,7 @@ namespace tech.msgp.groupmanager.Code
                                                     }
                                                     if (doc["msg"].GetAttribute("url").IndexOf("/www.bilibili.com/video/") > 0)//视频分享
                                                     {
-                                                        string bvn = BiliAPI.AVFinder.bvFromPlayURL(doc["msg"].GetAttribute("url"));
+                                                        string bvn = BiliApi.AVFinder.bvFromPlayURL(doc["msg"].GetAttribute("url"));
                                                         if (bvn != null)//真的是视频分享
                                                         {
                                                             processVideoBilibili(e, bvn);

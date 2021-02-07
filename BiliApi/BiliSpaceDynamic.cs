@@ -1,19 +1,33 @@
-﻿using Newtonsoft.Json;
+﻿using BiliApi.Auth;
+using BiliApi.Exceptions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI
+namespace BiliApi
 {
     //使用API：
     //https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid=5659864&offset_dynamic_id=0&need_top=1
+    /// <summary>
+    /// Bilibili空间动态获取工具类
+    /// </summary>
     public class BiliSpaceDynamic
     {
         private readonly int uid = -1;
         private List<Dyncard> dyns = new List<Dyncard>();
         private readonly List<long> checked_ids = new List<long>();
-        public BiliSpaceDynamic(int uid)
+        private ThirdPartAPIs sess;
+
+        public BiliSpaceDynamic(int uid, ThirdPartAPIs sess)
         {
+            this.sess = sess;
+            this.uid = uid;
+        }
+
+        public BiliSpaceDynamic(int uid, IAuthBase auth)
+        {
+            this.sess = new ThirdPartAPIs(auth.GetLoginCookies());
             this.uid = uid;
         }
 
@@ -48,14 +62,19 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
         public List<Dyncard> fetchDynamics()
         {
             List<Dyncard> dynss = new List<Dyncard>();
-            //try
+            string jstring = sess.getBiliUserDynamicJson(uid);
+            try
             {
-                string jstring = ThirdPartAPIs.getBiliUserDynamicJson(uid);
                 JObject jb = (JObject)JsonConvert.DeserializeObject(jstring);
+                if (jb.Value<int>("code") != 0)
+                {
+                    throw new ApiRemoteException(jb);
+                }
                 if (jb == null || jb["data"] == null || jb["data"]["cards"] == null)
                 {
                     return new List<Dyncard>();
                 }
+                ExceptionCollection excpts = new ExceptionCollection();
                 foreach (JToken jobj in jb["data"]["cards"])
                 {
                     try
@@ -82,18 +101,19 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
                                 0,
                                 j["desc"]["user_profile"]["info"].Value<string>("face"),
                                 j["desc"]["user_profile"]["level_info"].Value<int>("current_level"),
-                                0);
+                                0,
+                                sess);
                         }
                         else//如果没有信息就从缓存抓取
                         if (BiliUser.userlist.ContainsKey(j["desc"]["user_profile"]["info"].Value<int>("uid")))
                         {
-                            dyn.sender = BiliUser.getUser(j["desc"]["user_profile"]["info"].Value<int>("uid"));
+                            dyn.sender = BiliUser.getUser(j["desc"]["user_profile"]["info"].Value<int>("uid"),sess);
                             //使用用户数据缓存来提高速度
                             //因为监听的是同一个账号，所以缓存命中率超高
                         }
                         else//如果缓存未命中，就拿获得的UID抓取剩余信息
                         {
-                            dyn.sender = BiliUser.getUser(j["desc"]["user_profile"]["info"].Value<int>("uid"));
+                            dyn.sender = BiliUser.getUser(j["desc"]["user_profile"]["info"].Value<int>("uid"),sess);
                         }
 
                         if (j["desc"]["orig_type"] != null)
@@ -159,21 +179,23 @@ namespace tech.msgp.groupmanager.Code.BiliAPI
                     }
                     catch (Exception err)
                     {
-                        MainHolder.broadcaster.SendToAnEgg("[Exception]\n[动态抓取]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace);
-                        MainHolder.broadcaster.SendToAnEgg("[Exception]\n试图处理的信息：" + jobj.ToString());
+                        excpts.Add(err);
                     }
                 }
-                while (dynss.Count > 5)
-                {
-                    dynss.RemoveAt(5);
-                }
+                if (excpts.Count > 0) throw excpts;
+                //while (dynss.Count > 5)
+                //{
+                //    dynss.RemoveAt(5);
+                //}
                 return dynss;
             }
-            //catch
+            catch (ExceptionCollection)
             {
-#pragma warning disable CS0162 // 检测到无法访问的代码
-                return null;
-#pragma warning restore CS0162 // 检测到无法访问的代码
+                throw;
+            }
+            catch(Exception err)
+            {
+                throw new UnexpectedResultException(jstring, err);
             }
         }
 

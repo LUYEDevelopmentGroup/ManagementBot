@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
+namespace BiliApi.BiliPrivMessage
 {
     public class PrivMessageSession
     {
@@ -20,14 +20,17 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
         public bool followed;
         public bool isGroup;
         private int uid;
-        public PrivMessageSession(JToken json)
+        private ThirdPartAPIs sess;
+        public PrivMessageSession(JToken json, ThirdPartAPIs sess)
         {
+            this.sess = sess;
             init(json);
         }
-        public PrivMessageSession(int targetuid)
+        public PrivMessageSession(int targetuid, ThirdPartAPIs sess)
         {
+            this.sess = sess;
             talker_id = targetuid;
-            CookieCollection ck = DataBase.me.getBiliLoginCookie().GetCookies(new Uri("https://www.bilibili.com"));
+            CookieCollection ck = sess.CookieContext;
             uid = int.Parse(ck["DedeUserID"].Value);
             isGroup = false;
         }
@@ -38,33 +41,33 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
             sessiontype = json.Value<int>("session_type");
             session_ts = json.Value<long>("session_ts");
             unread_cnt = json.Value<int>("unread_count");
-            lastmessage = new PrivMessage(json["last_msg"]);
+            lastmessage = new PrivMessage(json["last_msg"], sess);
             followed = json.Value<int>("is_follow") == 1;
             isGroup = json["group_name"] != null;
             messages = new Dictionary<PrivMessage, bool>();
-            CookieCollection ck = DataBase.me.getBiliLoginCookie().GetCookies(new Uri("https://www.bilibili.com"));
+            CookieCollection ck = sess.CookieContext;
             uid = int.Parse(ck["DedeUserID"].Value);
         }
 
-        public static PrivMessageSession openSessionWith(int taruid)
+        public static PrivMessageSession openSessionWith(int taruid, ThirdPartAPIs sess)
         {
-            string rtv = ThirdPartAPIs._get_with_cookies("https://api.vc.bilibili.com/session_svr/v1/session_svr/session_detail?talker_id=" + taruid + "&session_type=1");
+            string rtv = sess._get_with_cookies("https://api.vc.bilibili.com/session_svr/v1/session_svr/session_detail?talker_id=" + taruid + "&session_type=1");
             JObject raw_json = (JObject)JsonConvert.DeserializeObject(rtv);
             if (raw_json.Value<int>("code") == 0)
             {
-                return new PrivMessageSession(raw_json["data"]);
+                return new PrivMessageSession(raw_json["data"], sess);
             }
             else
             {
-                return new PrivMessageSession(taruid);
+                return new PrivMessageSession(taruid, sess);
             }
         }
 
         public bool reload()
         {
-            CookieCollection ck = DataBase.me.getBiliLoginCookie().GetCookies(new Uri("https://www.bilibili.com"));
+            CookieCollection ck = sess.CookieContext;
             uid = int.Parse(ck["DedeUserID"].Value);
-            string rtv = ThirdPartAPIs._get_with_cookies("https://api.vc.bilibili.com/session_svr/v1/session_svr/session_detail?talker_id=" + uid + "&session_type=1");
+            string rtv = sess._get_with_cookies("https://api.vc.bilibili.com/session_svr/v1/session_svr/session_detail?talker_id=" + uid + "&session_type=1");
             JObject raw_json = (JObject)JsonConvert.DeserializeObject(rtv);
             if (raw_json.Value<int>("code") == 0)
             {
@@ -79,14 +82,14 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
 
         public void fetch()
         {
-            string jsonstring = ThirdPartAPIs._get_with_cookies("https://api.vc.bilibili.com/svr_sync/v1/svr_sync/fetch_session_msgs?sender_device_id=1&talker_id=" + talker_id + "&session_type=" + sessiontype + "&size=20&build=0&mobi_app=web");
+            string jsonstring = sess._get_with_cookies("https://api.vc.bilibili.com/svr_sync/v1/svr_sync/fetch_session_msgs?sender_device_id=1&talker_id=" + talker_id + "&session_type=" + sessiontype + "&size=20&build=0&mobi_app=web");
             lastjson = jsonstring;
             JObject json = (JObject)JsonConvert.DeserializeObject(jsonstring);
             foreach (JObject jb in json["data"]["messages"])
             {
                 try
                 {
-                    PrivMessage p = new PrivMessage(jb);
+                    PrivMessage p = new PrivMessage(jb, sess);
                     if (!messages.ContainsKey(p))
                     {
                         messages.Add(p, false);
@@ -106,7 +109,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
         {
             if (json.Value<int>("unread_count") <= 1)
             {
-                PrivMessage p = new PrivMessage(json["last_msg"]);
+                PrivMessage p = new PrivMessage(json["last_msg"], sess);
                 if (!messages.ContainsKey(p))
                 {
                     messages.Add(p, false);
@@ -124,7 +127,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
         {
             //https://api.vc.bilibili.com/web_im/v1/web_im/send_msg
             Dictionary<string, string> kvs = new Dictionary<string, string>();
-            CookieCollection ck = DataBase.me.getBiliLoginCookie().GetCookies(new Uri("https://www.bilibili.com"));
+            CookieCollection ck = sess.CookieContext;
             JObject job = new JObject
             {
                 { "content", text }
@@ -143,7 +146,7 @@ namespace tech.msgp.groupmanager.Code.BiliAPI.BiliPrivMessage
             kvs.Add("csrf_token", ck["bili_jct"].Value);
             kvs.Add("from_firework", "0");
             kvs.Add("csrf", ck["bili_jct"].Value);
-            string response = ThirdPartAPIs._post_with_cookies("https://api.vc.bilibili.com/web_im/v1/web_im/send_msg", kvs);
+            string response = sess._post_with_cookies("https://api.vc.bilibili.com/web_im/v1/web_im/send_msg", kvs);
             if (response == "")
             {
                 return false;
