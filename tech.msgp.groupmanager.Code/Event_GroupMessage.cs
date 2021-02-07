@@ -5,7 +5,7 @@ using Mirai_CSharp.Plugin.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Xml;
-using tech.msgp.groupmanager.Code.BiliApi;
+using BiliApi;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -14,7 +14,7 @@ namespace tech.msgp.groupmanager.Code
         public void processVideoBilibili(IGroupMessageEventArgs e, string bvn)
         {
 
-            BiliVideo biliv = new BiliVideo(bvn);
+            BiliVideo biliv = new BiliVideo(bvn, MainHolder.biliapi);
             if (DataBase.me.isUserOperator(e.Sender.Id))
             {
                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "【视频分享】\n《" + biliv.title + "》\nBy " + biliv.owner.name);
@@ -23,7 +23,7 @@ namespace tech.msgp.groupmanager.Code
 
             string dt = "[视频分享]\n群:" + e.Sender.Group.Name + "\n人:" + e.Sender.Name + "\n分享视频：\n" + biliv.title + "\nUP：" + biliv.owner.name + "\nhttps://www.bilibili.com/video/" + biliv.vid + "\n";
             if (biliv.owner.uid == 5659864 ||
-                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0)))//鹿野发布或参与
+                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0, MainHolder.biliapi)))//鹿野发布或参与
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【不违规】");
                 return;

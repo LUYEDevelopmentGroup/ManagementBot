@@ -8,14 +8,15 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliApi;
+using BiliApi;
 using tech.msgp.groupmanager.Code.TCPMessageProcessor;
+using System.Web;
 
 namespace tech.msgp.groupmanager.Code
 {
     public class MainHolder
     {
-        public const double GLOBAL_WARN_WEIGHT = 1F/3F;
+        public const double GLOBAL_WARN_WEIGHT = 1F / 3F;
 
         public static List<BiliSpaceDynamic> dynamics = new List<BiliSpaceDynamic>();
         public static Broadcaster broadcaster;
@@ -28,6 +29,8 @@ namespace tech.msgp.groupmanager.Code
         public static pThreadPool pool;
         public static MiraiHttpSession session;
         public static PyRunner py;
+        public static BiliApi.Auth.QRLogin bililogin;
+        public static BiliApi.ThirdPartAPIs biliapi;
 
         /// <summary>
         /// 推送动态的B站UID列表
@@ -100,15 +103,67 @@ namespace tech.msgp.groupmanager.Code
                 }
             }
 
-            try
+            pool.submitWorkload(new pThreadPool.workload(() =>
             {
-                py = new PyRunner();
-                MainHolder.logger("SideLoad", "Python-Engine is UP.", ConsoleColor.Black, ConsoleColor.White);
-            }
-            catch (Exception)
-            {
-                MainHolder.logger("SideLoad", "Python-Engine Failed.", ConsoleColor.Black, ConsoleColor.Red);
-            }
+                while (true)
+                {
+                    try
+                    {
+                        bililogin = new BiliApi.Auth.QRLogin();
+                        broadcaster.BroadcastToAdminGroup(new IMessageBase[] {
+                            new ImageMessage(null, "https://api.pwmqr.com/qrcode/create/?url=" + HttpUtility.UrlEncode(bililogin.QRToken.ScanUrl), null),
+                            new PlainMessage("Token="+bililogin.QRToken.OAuthKey+"\n"+bililogin.QRToken.ScanUrl)
+                        });
+                        bililogin.Login();
+                        broadcaster.BroadcastToAdminGroup("Bilibili账号已登入");
+                        biliapi = new BiliApi.ThirdPartAPIs(bililogin.Cookies);
+                        break;
+                    }
+                    catch (Exception err)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+
+                //B站登录完成，加载相关模块
+                try
+                {
+                    BiliUser.userlist = new Dictionary<int, BiliUser>();
+                    dynamics = new List<BiliSpaceDynamic>();
+                    bilidmkproc = new BiliDanmakuProcessor(2064239);
+                    bilidmkproc.Init_connection();
+                    MainHolder.logger("SideLoad", "BLive-DMKReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
+                }
+                catch (Exception)
+                {
+                    MainHolder.logger("SideLoad", "BLive-DMKReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
+                }
+                try
+                {
+                    if (MainHolder.useBiliRecFuncs)
+                    {
+                        PrivmessageChecker.startthreads();
+                        MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
+                    }
+                    else
+                    {
+                        MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is DISABLED.", ConsoleColor.Black, ConsoleColor.White);
+                    }
+                }
+                catch (Exception)
+                {
+                    MainHolder.logger("SideLoad", "BiliPrivMessageReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
+                }
+                try
+                {
+                    DynChecker.startthreads();
+                    MainHolder.logger("SideLoad", "DynChecker is UP.", ConsoleColor.Black, ConsoleColor.White);
+                }
+                catch (Exception)
+                {
+                    MainHolder.logger("SideLoad", "DynChecker FAILED.", ConsoleColor.Black, ConsoleColor.Red);
+                }
+            }));
 
             try
             {
@@ -119,18 +174,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.logger("SideLoad", "Broadcaster FAILED.", ConsoleColor.Black, ConsoleColor.Red);
             }
-            try
-            {
-                BiliUser.userlist = new Dictionary<int, BiliUser>();
-                dynamics = new List<BiliSpaceDynamic>();
-                bilidmkproc = new BiliDanmakuProcessor(2064239);
-                bilidmkproc.Init_connection();
-                MainHolder.logger("SideLoad", "BLive-DMKReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
-            }
-            catch (Exception)
-            {
-                MainHolder.logger("SideLoad", "BLive-DMKReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
-            }
+
             try
             {
                 tms = new TCPMessageServer(15510);
@@ -141,31 +185,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.logger("SideLoad", "Connection-Point service FAILED.", ConsoleColor.Black, ConsoleColor.Red);
             }
-            try
-            {
-                if (MainHolder.useBiliRecFuncs)
-                {
-                    PrivmessageChecker.startthreads();
-                    MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
-                }
-                else
-                {
-                    MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is DISABLED.", ConsoleColor.Black, ConsoleColor.White);
-                }
-            }
-            catch (Exception)
-            {
-                MainHolder.logger("SideLoad", "BiliPrivMessageReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
-            }
-            try
-            {
-                DynChecker.startthreads();
-                MainHolder.logger("SideLoad", "DynChecker is UP.", ConsoleColor.Black, ConsoleColor.White);
-            }
-            catch (Exception)
-            {
-                MainHolder.logger("SideLoad", "DynChecker FAILED.", ConsoleColor.Black, ConsoleColor.Red);
-            }
+
             try
             {
                 SecondlyTask.startthreads();
@@ -252,7 +272,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 if (!crews.Contains(kvp.Value))
                 {
-                    BiliUser u = new BiliUser(kvp.Key);
+                    BiliUser u = new BiliUser(kvp.Key, biliapi);
                     msg += "Bili:" + u.name + " => QQ:" + kvp.Value + "\n";
                 }
             }

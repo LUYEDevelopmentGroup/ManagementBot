@@ -40,7 +40,7 @@ namespace tech.msgp.groupmanager.Code
             lr.sm.StreamStopped += StreamStopped;
             lr.sm.ExceptionHappened += ExceptionHappened;
             lr.init_connection();
-            blr = new BiliLiveRoom(liveid);
+            blr = new BiliLiveRoom(liveid, MainHolder.bililogin);
         }
 
         private void doStreamCacuStability()
@@ -66,7 +66,7 @@ namespace tech.msgp.groupmanager.Code
                 return;
             }
             ispickedup = false;
-            blr = new BiliLiveRoom(liveid);
+            blr = new BiliLiveRoom(liveid, MainHolder.bililogin);
             lid = blr.lid;
             new_commers = 0;
             viewerlist.Clear();
@@ -93,7 +93,7 @@ namespace tech.msgp.groupmanager.Code
         private bool ispickedup = false;
         public int PickupRunningLive()
         {
-            blr = new BiliLiveRoom(liveid);
+            blr = new BiliLiveRoom(liveid, MainHolder.bililogin);
             if (blr.status != BiliLiveRoom.STATUS_LIVE)
             {
                 lid = -1;
@@ -361,7 +361,7 @@ namespace tech.msgp.groupmanager.Code
         public static bool SendKeyToCrewMember(int uid, int length, int crewlevel, int timestamp, string clevel, bool isnew)
         {
             string token = CrewKeyProcessor.getToken(uid, length, crewlevel, timestamp);
-            PrivMessageSession session = PrivMessageSession.openSessionWith(uid);
+            PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);
             bool succeed = true;
             if (isnew)
             {

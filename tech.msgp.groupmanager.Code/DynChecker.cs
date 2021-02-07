@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliApi;
+using BiliApi;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -24,7 +24,7 @@ namespace tech.msgp.groupmanager.Code
                 listened_uids = MainHolder.BiliWatchUIDs;
                 foreach (int uid in listened_uids)
                 {
-                    MainHolder.dynamics.Add(new BiliApi.BiliSpaceDynamic(uid));
+                    MainHolder.dynamics.Add(new BiliApi.BiliSpaceDynamic(uid,MainHolder.bililogin));
                 }
                 main = new Thread(new ThreadStart(run));
                 main.Start();
@@ -108,7 +108,7 @@ namespace tech.msgp.groupmanager.Code
         }
         public static void check_fans(bool debug = false)
         {
-            string LuYe_UpStat = BiliApi.ThirdPartAPIs.getUpState(5659864);
+            string LuYe_UpStat = MainHolder.biliapi.getUpState(5659864);
             if (LuYe_UpStat != null)
             {
                 JObject jb1 = (JObject)JsonConvert.DeserializeObject(LuYe_UpStat);
@@ -138,7 +138,7 @@ namespace tech.msgp.groupmanager.Code
                         int offset = fans - fcr;
                         int page = (offset / 10) + 1;
                         int index = offset % 10;
-                        string fanlist = BiliApi.ThirdPartAPIs.getFanList(5659864, page, 10);
+                        string fanlist = MainHolder.biliapi.getFanList(5659864, page, 10);
                         if (fanlist != null)
                         {
                             JObject jb2 = (JObject)JsonConvert.DeserializeObject(fanlist);

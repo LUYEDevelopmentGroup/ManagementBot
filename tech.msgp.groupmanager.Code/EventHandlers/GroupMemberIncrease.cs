@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Mirai_CSharp.Plugin.Interfaces;
-using tech.msgp.groupmanager.Code.BiliApi.BiliPrivMessage;
+using BiliApi.BiliPrivMessage;
 using static tech.msgp.groupmanager.Code.DataBase;
 
 namespace tech.msgp.groupmanager.Code.EventHandlers
@@ -56,8 +56,8 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup(usname + "(" + qq + ")<舰长> 加入群  " +
                             gname + "(" + groupId + ") \nB站信息:https://space.bilibili.com/" + uid + "\n");
-                        PrivMessageSession psession = PrivMessageSession.openSessionWith((int)uid);
-                        BiliApi.BiliUser bu = BiliApi.BiliUser.getUser((int)uid);
+                        PrivMessageSession psession = PrivMessageSession.openSessionWith((int)uid, MainHolder.biliapi);
+                        BiliApi.BiliUser bu = BiliApi.BiliUser.getUser((int)uid, MainHolder.biliapi);
                         CrewChecker cr = new CrewChecker();
                         cr.getAllCrewMembers();
                         Dictionary<int, CrewMember> crewlist = cr.getCurrentCrewMembers();

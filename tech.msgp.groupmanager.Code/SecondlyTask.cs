@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliApi;
+using BiliApi;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -54,9 +54,9 @@ namespace tech.msgp.groupmanager.Code
                     }
                     if (counter % 30 == 0)
                     {//每半分钟一次
-                        if (MainHolder.bilidmkproc.lid <= 0)
+                        if (MainHolder.bilidmkproc?.lid <= 0)
                         {
-                            MainHolder.bilidmkproc.PickupRunningLive();
+                            MainHolder.bilidmkproc?.PickupRunningLive();
                         }
                     }
                     if (counter % (60 * 60 * 12) == 0)
@@ -72,7 +72,7 @@ namespace tech.msgp.groupmanager.Code
                         counter = 0;//以一天为循环体
                     }
 
-                    MainHolder.bilidmkproc.UpdateLiveDataToDB();//每秒都更新数据库
+                    MainHolder.bilidmkproc?.UpdateLiveDataToDB();//每秒都更新数据库
                 }
                 catch (Exception err)
                 {

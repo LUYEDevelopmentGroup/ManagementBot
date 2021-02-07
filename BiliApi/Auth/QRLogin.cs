@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using BiliApi.Exceptions;
 using System.Threading;
+using System.Drawing;
 
 namespace BiliApi.Auth
 {
@@ -99,11 +100,20 @@ namespace BiliApi.Auth
             };
         }
 
+        /// <summary>
+        /// 获取二维码状态
+        /// </summary>
+        /// <returns>二维码状态</returns>
         public QRState GetQRState()
         {
             return GetQRState(QRToken);
         }
 
+        /// <summary>
+        /// 获取二维码状态
+        /// </summary>
+        /// <param name="qr">二维码信息</param>
+        /// <returns>二维码状态</returns>
         public QRState GetQRState(LoginQRCode qr)
         {
             var res = ThirdPartAPIs._post_cookies(URL_STATUS, new Dictionary<string, string>()

@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliApi;
+using BiliApi;
 
 namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
 {
@@ -189,7 +189,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                                 {
                                     foreach (int uid in uid_tobebound)
                                     {
-                                        BiliUser biuser = new BiliUser(uid);
+                                        BiliUser biuser = new BiliUser(uid, MainHolder.biliapi);
                                         msg_sock.Send(Encoding.UTF8.GetBytes("BINFO^" + uid + "^SOF@" + biuser.name + "^EOF@"));
                                         uid_tobebound.Remove(uid);
                                         break;
@@ -234,7 +234,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                             case "B"://UID和QQ绑定
                                 if (DataBase.me.boundBiliWithQQ(long.Parse(st[1]), long.Parse(st[2])))
                                 {
-                                    BiliUser biuser = new BiliUser(int.Parse(st[1]));
+                                    BiliUser biuser = new BiliUser(int.Parse(st[1]), MainHolder.biliapi);
                                     MainHolder.broadcaster.SendToQQ(long.Parse(st[2]), "管理员手动将您的QQ号与B站账号\"" + biuser.name + "\"绑定。如有错误，请联系管理解决。");
                                     msg_sock.Send(Encoding.UTF8.GetBytes("REPLY^OK"));
                                 }

@@ -16,6 +16,7 @@ namespace BiliApi
     /// </summary>
     public class ThirdPartAPIs
     {
+        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36";
         public ThirdPartAPIs(CookieCollection c)
         {
             CookieContext = c;
@@ -35,7 +36,7 @@ namespace BiliApi
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
-
+            request.UserAgent = USER_AGENT;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader streamReader = new StreamReader(myResponseStream);
@@ -58,6 +59,7 @@ namespace BiliApi
             byte[] bs = Encoding.UTF8.GetBytes(retString);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
+            request.UserAgent = USER_AGENT;
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = bs.Length;
             request.CookieContainer = new CookieContainer();
@@ -84,7 +86,7 @@ namespace BiliApi
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
-
+            request.UserAgent = USER_AGENT;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader streamReader = new StreamReader(myResponseStream);
@@ -106,7 +108,7 @@ namespace BiliApi
             request.Method = "GET";
             request.ContentType = "application/json";
             request.CookieContainer = ToContainer(cookies);
-            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36";
+            request.UserAgent = USER_AGENT;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader streamReader = new StreamReader(new GZipStream(myResponseStream, CompressionMode.Decompress), Encoding.UTF8, true);
@@ -123,6 +125,7 @@ namespace BiliApi
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
+            request.UserAgent = USER_AGENT;
             request.CookieContainer = ToContainer(cookies);
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
@@ -141,6 +144,7 @@ namespace BiliApi
             request.Method = "GET";
             request.ContentType = "application/json";
             request.Referer = refer;
+            request.UserAgent = USER_AGENT;
             request.CookieContainer = ToContainer(cookies);
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
@@ -165,6 +169,7 @@ namespace BiliApi
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.CookieContainer = ToContainer(cookies);
+            request.UserAgent = USER_AGENT;
             request.Referer = refer;
             request.ContentLength = bs.Length;
             //提交请求数据
@@ -196,6 +201,7 @@ namespace BiliApi
             request.ContentType = "application/x-www-form-urlencoded";
             request.CookieContainer = ToContainer(cookies);
             request.ContentLength = bs.Length;
+            request.UserAgent = USER_AGENT;
             //提交请求数据
             Stream reqStream = request.GetRequestStream();
             reqStream.Write(bs, 0, bs.Length);

@@ -3,8 +3,8 @@ using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using tech.msgp.groupmanager.Code.BiliApi;
-using tech.msgp.groupmanager.Code.BiliApi.BiliPrivMessage;
+using BiliApi;
+using BiliApi.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -262,14 +262,14 @@ namespace tech.msgp.groupmanager.Code
                             case "#push_live":
                             case "#推直播":
                                 {
-                                    BiliLiveRoom lroom = new BiliLiveRoom(2064239);
+                                    BiliLiveRoom lroom = new BiliLiveRoom(2064239, MainHolder.bililogin);
                                     MainHolder.broadcaster.BroadcastToAllGroup("[ATALL()][开播啦！]\n" + lroom.title + "\nhttps://live.bilibili.com/" + lroom.roomid);
                                     MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Done.");
                                 }
                                 break;
                             case "#sendpmsg":
                                 {
-                                    PrivMessageSession psession = PrivMessageSession.openSessionWith(int.Parse(cmd[1]));
+                                    PrivMessageSession psession = PrivMessageSession.openSessionWith(int.Parse(cmd[1]), MainHolder.biliapi);
                                     psession.sendMessage(clearstr.Substring(clearstr.IndexOf(cmd[1]) + cmd[1].Length + 1));
                                 }
                                 break;
@@ -287,10 +287,10 @@ namespace tech.msgp.groupmanager.Code
                                 }
                                 break;
                             case "#warn":
-                                    Warn(session, e, clearstr, double.Parse(cmd[2]));
+                                Warn(session, e, clearstr, double.Parse(cmd[2]));
                                 break;
                             case "#weigh":
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
                                     new AtMessage(e.Sender.Id),
                                     new PlainMessage("您的权重为<"+DataBase.me.getOPWeigh(e.Sender.Id)+">\n该值用于稳定违规处罚力度，可能会动态调整。")
                                     });
@@ -624,7 +624,7 @@ namespace tech.msgp.groupmanager.Code
                                 MainHolder.checkCrewGroup();
                                 break;
                             case "#debug_liveban":
-                                string rpll = BiliApi.ThirdPartAPIs.banUIDfromroom(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]));
+                                string rpll = MainHolder.biliapi.banUIDfromroom(int.Parse(cmd[1]), int.Parse(cmd[2]), int.Parse(cmd[3]));
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, rpll);
                                 break;
                             case "#debug_trigger_banrefresh":

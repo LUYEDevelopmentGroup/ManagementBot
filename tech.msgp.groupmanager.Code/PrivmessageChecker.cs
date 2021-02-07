@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using tech.msgp.groupmanager.Code.BiliApi.BiliPrivMessage;
+using BiliApi.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -19,7 +19,7 @@ namespace tech.msgp.groupmanager.Code
             }
             else
             {
-                man = new PrivSessionManager();
+                man = new PrivSessionManager(MainHolder.biliapi);
                 main = new Thread(new ThreadStart(run));
                 main.Start();
             }
@@ -65,7 +65,7 @@ namespace tech.msgp.groupmanager.Code
                                             if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
                                             {
                                                 MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 绑定了TA的QQ号:" + qq);
-                                                PrivMessageSession privsession = PrivMessageSession.openSessionWith(pm.talker.uid);
+                                                PrivMessageSession privsession = PrivMessageSession.openSessionWith(pm.talker.uid, MainHolder.biliapi);
                                                 privsession.sendMessage("[自动回复] 好的，管理将在稍后尝试与您取得联系。您也可以尝试使用下面的链接自助入群：https://jq.qq.com/?_wv=1027&k=3WZDODeC");
                                             }
                                             else
