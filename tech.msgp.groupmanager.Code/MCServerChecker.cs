@@ -1,6 +1,4 @@
-﻿using MinecraftClient.Protocol;
-using MinecraftClient.Protocol.Handlers.Forge;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -48,12 +46,12 @@ namespace tech.msgp.groupmanager.Code
             {
                 foreach (KeyValuePair<string, MCServer> s in servers)
                 {
-                    ForgeInfo forgeInfo = null;
+                    //ForgeInfo forgeInfo = null;
                     int pversion = 0;
                     string addr = s.Value.addr;
                     ushort port = s.Value.port;
-                    ProtocolHandler.MinecraftServiceLookup(ref addr, ref port);
-                    bool result = ProtocolHandler.GetServerInfo(addr, port, ref pversion, ref forgeInfo);
+                    //ProtocolHandler.MinecraftServiceLookup(ref addr, ref port);
+                    bool result = false;//ProtocolHandler.GetServerInfo(addr, port, ref pversion, ref forgeInfo);
                     if (results.ContainsKey(s.Key))
                     {
                         results.Remove(s.Key);

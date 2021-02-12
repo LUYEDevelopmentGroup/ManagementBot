@@ -749,7 +749,7 @@ namespace tech.msgp.groupmanager.Code
                 if (clearstr.Split('\n')[0].ToUpper().Contains("PYTHON"))
                 {
                     if (!MainHolder.enableNativeFuncs) return;
-                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python引擎接收到恶意代码导致系统不稳定，在对应补丁上线前暂时关闭。");
+                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "Python引擎存在重大安全漏洞，目前已经被下架。");
                     return;
                     {//安全性检测
                         string str = clearstr.ToLower().Replace(" ", "");
@@ -763,7 +763,7 @@ namespace tech.msgp.groupmanager.Code
                         }
                     }
 
-                    string resu = MainHolder.py.runPyCommand(clearstr);
+                    string resu = "";// MainHolder.py.runPyCommand(clearstr);
                     if (resu != null && resu.Length > 0)
                     {
                         Array lines = (Array)resu.Split('\n');
