@@ -2,7 +2,6 @@
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using Newtonsoft.Json.Linq;
-using PyEngine;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -27,7 +26,6 @@ namespace tech.msgp.groupmanager.Code
         public static List<long> friends;
         public static pThreadPool pool;
         public static MiraiHttpSession session;
-        public static PyRunner py;
         public static BiliApi.Auth.QRLogin bililogin;
         public static BiliApi.ThirdPartAPIs biliapi;
         public static bool doBiliLogin = true;
