@@ -87,9 +87,11 @@ namespace CQ2IOT_HOST
                     {
                         while (true)
                         {
-                            logger("threadpool", "threads= " + pool.min_size + "<" + pool.size + "/" + pool.busythread + "<" + pool.max_size +
+                            /*
+                                logger("threadpool", "threads= " + pool.min_size + "<" + pool.size + "/" + pool.busythread + "<" + pool.max_size +
                                 " | works= " + pool.queuelen + "<" + pool.queue_max_len + " | errors= " + pool.excepttionlen + "<" + pool.exceptionmaxlen
                                 );
+                            */
                             Dictionary<Guid, Exception> err = pool.popException();
                             if (err != null)
                             {
@@ -100,7 +102,7 @@ namespace CQ2IOT_HOST
                                 }
                             }
                             pool.clearExceptions();
-                            Thread.Sleep(30000);
+                            Thread.Sleep(1000);
                         }
                     });
                     pool.onWorkloadStartProcess += startwork;
@@ -158,41 +160,48 @@ namespace CQ2IOT_HOST
 
                     while (true)
                     {
-                        string field = "";
-                        do
+                        try
                         {
-                            ConsoleKeyInfo k = Console.ReadKey(true);
-                            if (k.Key == ConsoleKey.Enter)
+                            string field = "";
+                            do
                             {
-                                break;
-                            }
-
-                            if (k.Key == ConsoleKey.Backspace)
-                            {
-                                if (field.Length >= 1)
+                                ConsoleKeyInfo k = Console.ReadKey(true);
+                                if (k.Key == ConsoleKey.Enter)
                                 {
-                                    field = field.Substring(0, field.Length - 1);
+                                    break;
                                 }
-                                continue;
-                            }
-                            if (k.Key == ConsoleKey.Delete)
+
+                                if (k.Key == ConsoleKey.Backspace)
+                                {
+                                    if (field.Length >= 1)
+                                    {
+                                        field = field.Substring(0, field.Length - 1);
+                                    }
+                                    continue;
+                                }
+                                if (k.Key == ConsoleKey.Delete)
+                                {
+                                    field = "";
+                                    continue;
+                                }
+                                field += k.KeyChar;
+                                //Console.Title = "input>" + field + " | Press [Enter] to " + (field.Length >= 1 ? "set" : "remove") + " a filter.";
+                            } while (true);
+                            keyword = field;
+                            if (keyword != "")
                             {
-                                field = "";
-                                continue;
+                                logger("control", "Filter set.", ConsoleColor.Black, ConsoleColor.Green);
+                                //Console.Title = "Filter: " + keyword + " | Press [Enter] to remove filter";
                             }
-                            field += k.KeyChar;
-                            //Console.Title = "input>" + field + " | Press [Enter] to " + (field.Length >= 1 ? "set" : "remove") + " a filter.";
-                        } while (true);
-                        keyword = field;
-                        if (keyword != "")
-                        {
-                            logger("control", "Filter set.", ConsoleColor.Black, ConsoleColor.Green);
-                            //Console.Title = "Filter: " + keyword + " | Press [Enter] to remove filter";
+                            else
+                            {
+                                logger("control", "Filter removed.", ConsoleColor.Black, ConsoleColor.Green);
+                                //Console.Title = "ManageBot By Developer_ken - Standby";
+                            }
                         }
-                        else
+                        catch
                         {
-                            logger("control", "Filter removed.", ConsoleColor.Black, ConsoleColor.Green);
-                            //Console.Title = "ManageBot By Developer_ken - Standby";
+                            Thread.Sleep(int.MaxValue);
                         }
                     };
                 }
@@ -229,17 +238,18 @@ namespace CQ2IOT_HOST
 
         public static void startwork(Guid id)
         {
-            logger("WORKLOAD", id.ToString() + " - Started.");
+            //logger("WORKLOAD", id.ToString() + " - Started.");
         }
 
         public static void stopwork(Guid id)
         {
-            logger("WORKLOAD", id.ToString() + " - Ended.");
+            //logger("WORKLOAD", id.ToString() + " - Ended.");
         }
 
         public static void logger(string type, string msg, ConsoleColor backcolor = ConsoleColor.Black, ConsoleColor frontcolor = ConsoleColor.White)
         {
-            //if (type.ToLower().IndexOf("debug") > -1) return;//隐藏所有debug信息
+            if (type.ToLower().IndexOf("debug") > -1) return;//隐藏所有debug信息
+            if (type.ToLower().IndexOf("sql") > -1) return;//隐藏sql调试信息
             lock ("MAIN_LOGGER")
             {
                 if (((keyword.Length > 1 && keyword.Substring(0, 1) == "-") && !(type.ToLower().IndexOf(keyword.ToLower().Substring(1)) > -1)) ||
@@ -248,9 +258,9 @@ namespace CQ2IOT_HOST
                 {
                     Console.BackgroundColor = backcolor;
                     Console.ForegroundColor = frontcolor;
-                    Console.Write(type);
+                    Console.Write(DateTime.Now + " [" + type + "]\t");
                     Console.ResetColor();
-                    Console.Write("->" + msg + "\n");
+                    Console.Write("" + msg + "\n");
                 }
             }
         }

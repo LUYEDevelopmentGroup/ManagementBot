@@ -23,19 +23,27 @@ namespace tech.msgp.groupmanager.Code
 
             string dt = "[视频分享]\n群:" + e.Sender.Group.Name + "\n人:" + e.Sender.Name + "\n分享视频：\n" + biliv.title + "\nUP：" + biliv.owner.name + "\nhttps://www.bilibili.com/video/" + biliv.vid + "\n";
             if (biliv.owner.uid == 5659864 ||
-                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0, MainHolder.biliapi)))//鹿野发布或参与
+                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0, new BiliUser.OfficialInfo(), MainHolder.biliapi)))//鹿野发布或参与
             {
-                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【不违规】");
-                return;
+                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【鹿野视频，通过】");
+            }
+            else if (biliv.owner.fans > 500000)
+            {
+                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【通识up，通过】");
+            }
+            else if (biliv.owner.official.Type == BiliUser.OfficialType.Organization)
+            {
+                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【机构官方，通过】");
             }
             else
             {
                 //违规！警告涉事者并撤回消息
                 MainHolder.session.RevokeMessageAsync(((SourceMessage)e.Chain[0]).Id);
                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该视频不被允许分享。请仔细阅读群规。\n特殊情况请联系管理员哦");
-                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【违规分享，已撤回】");
+                MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【涉嫌推广，已撤回】");
                 return;
             }
+            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "《" + biliv.title + "》\nBy " + biliv.owner.name);
         }
 
 #pragma warning disable CS1998 // 此异步方法缺少 "await" 运算符，将以同步方式运行。请考虑使用 "await" 运算符等待非阻止的 API 调用，或者使用 "await Task.Run(...)" 在后台线程上执行占用大量 CPU 的工作。
@@ -45,7 +53,7 @@ namespace tech.msgp.groupmanager.Code
             try
             {
                 pThreadPool pool = MainHolder.pool;
-                MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");
+                //MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");
                 MainHolder.MsgCount++;
                 SecondlyTask.lastrecv = DateTime.Now;
                 if (true)

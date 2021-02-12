@@ -578,6 +578,9 @@ namespace tech.msgp.groupmanager.Code
                             }
                             break;
                             */
+                            case "#lb":
+                                MainHolder.doBiliLogin = true;
+                                break;
                             case "#发弹幕":
                             case "#senddmk":
                                 switch (cmd.Length)

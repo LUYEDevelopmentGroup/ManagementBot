@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BiliApi.Net\BiliApi.csproj" />
     <ProjectReference Include="..\BiliveDanmakuCli\BiliveDanmakuCli.csproj" />
-    <ProjectReference Include="..\DiscordAPI\DiscordAPI.csproj" />
     <ProjectReference Include="..\MinecraftClient\MinecraftClient.csproj" />
     <ProjectReference Include="..\PyEngine\PyEngine.csproj" />
   </ItemGroup>

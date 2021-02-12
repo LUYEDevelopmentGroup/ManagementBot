@@ -24,13 +24,13 @@ namespace tech.msgp.groupmanager.Code
         public static List<long> issending = new List<long>();
         public static TCPMessageServer tms;
         public static int MsgCount;
-        public static DiscordAPI.WebAPI disca;
         public static List<long> friends;
         public static pThreadPool pool;
         public static MiraiHttpSession session;
         public static PyRunner py;
         public static BiliApi.Auth.QRLogin bililogin;
         public static BiliApi.ThirdPartAPIs biliapi;
+        public static bool doBiliLogin = true;
 
         /// <summary>
         /// 推送动态的B站UID列表
@@ -109,18 +109,21 @@ namespace tech.msgp.groupmanager.Code
                 {
                     try
                     {
+                        while (!doBiliLogin) Thread.Sleep(500);
                         bililogin = new BiliApi.Auth.QRLogin();
                         broadcaster.BroadcastToAdminGroup(new IMessageBase[] {
                             new ImageMessage(null, "https://api.pwmqr.com/qrcode/create/?url=" + HttpUtility.UrlEncode(bililogin.QRToken.ScanUrl), null),
-                            new PlainMessage("Token="+bililogin.QRToken.OAuthKey+"\n"+bililogin.QRToken.ScanUrl)
+                            new PlainMessage("Token="+bililogin.QRToken.OAuthKey+"\n部分模块依赖B站账号访问权，已挂起。授权完成后将释放它们。")
                         });
                         bililogin.Login();
-                        broadcaster.BroadcastToAdminGroup("Bilibili账号已登入");
+                        broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
                         biliapi = new BiliApi.ThirdPartAPIs(bililogin.Cookies);
                         break;
                     }
                     catch (Exception err)
                     {
+                        broadcaster.BroadcastToAdminGroup("BiliApi.NET返回了一处错误：" + err.Message + "\n输入#lb再次尝试登录");
+                        doBiliLogin = false;
                         Thread.Sleep(1000);
                     }
                 }
@@ -195,29 +198,6 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.logger("SideLoad", "FATAL ScheduledTask-Manager FAILED.", ConsoleColor.Black, ConsoleColor.Red);
             }
-            try
-            {
-                disca = new DiscordAPI.WebAPI("https://discord.com/api/webhooks/747828316404449320/ysUymAoAeonVSVO8-GvZArPPjy0WvAu4VxBRTP4hIo9rWDvsjQSecp8H3gYj6zsdqkD4");
-                pool.submitWorkload(() =>
-                {
-                    try
-                    {
-                        while (true)
-                        {
-                            disca._PROC();
-                            Thread.Sleep(100);
-                        }
-                    }
-                    catch { }
-                });
-                MainHolder.logger("SideLoad", "Discord-sync is UP.", ConsoleColor.Black, ConsoleColor.White);
-            }
-            catch (Exception)
-            {
-                MainHolder.logger("SideLoad", "Discord-sync FAILED.", ConsoleColor.Black, ConsoleColor.Red);
-            }
-
-
 
             try
             {
