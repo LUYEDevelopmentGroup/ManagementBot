@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Xml;
 using BiliApi;
+using Newtonsoft.Json.Linq;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -94,6 +95,11 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
                                     }
 
+                                    if (Commands.cocogroup == e.Sender.Group.Id)
+                                    {
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Xml解析]\n" + message.Xml);
+                                    }
+
                                     XmlDocument doc = new XmlDocument();
                                     doc.LoadXml(message.Xml);
                                     {
@@ -165,11 +171,47 @@ namespace tech.msgp.groupmanager.Code
                             case "Json":
                                 {
                                     JsonMessage message = (JsonMessage)msg;
+                                    if (Commands.cocogroup == e.Sender.Group.Id)
+                                    {
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Json解析]\n" + message.Json);
+                                    }
                                     if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Json))
                                     {
                                         MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
                                     }
                                 }
+                                break;
+                            case "App":
+                                {
+                                    AppMessage message = (AppMessage)msg;
+                                    if (Commands.cocogroup == e.Sender.Group.Id)
+                                    {
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[AppContent解析]\n" + message.Content);
+                                    }
+                                    if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Content))
+                                    {
+                                        MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
+                                    }
+                                    {
+                                        string abvn = null;
+                                        try
+                                        {
+                                            JObject jb = JObject.Parse(message.Content);
+                                            abvn = AVFinder.bvFromB23url(jb["meta"]["detail_1"]["qqdocurl"].ToString());
+                                        }
+                                        catch
+                                        {
+
+                                        }
+                                        if (abvn != null && abvn != "")
+                                            processVideoBilibili(e, abvn);
+
+                                    }
+                                }
+                                break;
+                            case "Source":
+                                break;
+                            default:
                                 break;
                         }
                     }

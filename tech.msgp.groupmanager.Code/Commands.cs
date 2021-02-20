@@ -107,6 +107,8 @@ namespace tech.msgp.groupmanager.Code
             MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, r + "\n附件数：" + imgid);
         }
 
+        public static long cocogroup = -1;
+
         public static void Proc(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr)
         {
             if (clearstr == null || clearstr.Length < 2 || clearstr.IndexOf("#") != 0)
@@ -131,6 +133,29 @@ namespace tech.msgp.groupmanager.Code
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "！该操作涉及大量数据库操作，需要一定时间");
                                 DataBase.me.update_groupmembers(e.Sender.Group.Id);
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "已更新群成员数据");
+                                break;
+                            case "#getcode":
+                                cocogroup = e.Sender.Group.Id;
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "将解析下一条特殊消息。");
+                                break;
+                            case "#json":
+                                {
+                                    int pos = clearstr.IndexOf("{");
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new JsonMessage() { Json = clearstr.Substring(pos) } });
+                                }
+                                break;
+                            case "#xml":
+                                {
+                                    int pos = clearstr.IndexOf("<");
+                                    string st = clearstr.Substring(pos);
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new XmlMessage() { Xml = st } });
+                                }
+                                break;
+                            case "#app":
+                                {
+                                    int pos = clearstr.IndexOf("{");
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new AppMessage() { Content = clearstr.Substring(pos) } });
+                                }
                                 break;
                             case "#解除拉黑":
                             case "#unban":
@@ -601,7 +626,13 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "#senddmk 文本内容 字体大小 BLive颜色代码 BLive气泡代码");
                                         break;
                                 }
+                                break;
+                            case "#sendpriv":
+                                {
 
+                                    PrivMessageSession sess = PrivMessageSession.openSessionWith(int.Parse(cmd[1]), MainHolder.biliapi);
+                                    sess.sendMessage(cmd[2]);
+                                }
                                 break;
                             case "#CERT":
                                 string note;
@@ -737,6 +768,9 @@ namespace tech.msgp.groupmanager.Code
 
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, res);
                             }
+                            break;
+                        case "#VOICE":
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new VoiceMessage(null, "http://192.168.1.7:8910/rand.php?rand" + new Random().Next().ToString(), null) });
                             break;
                     }
                 }

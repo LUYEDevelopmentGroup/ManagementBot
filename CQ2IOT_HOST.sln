@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiliApi", "BiliApi.Net\Bili
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiliveDanmakuAgent", "BiliveDanmakuAgent\BiliveDanmakuAgent.csproj", "{15160335-404E-4A0F-A36A-34453C15744B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrewAddToGifts", "CrewAddToGifts\CrewAddToGifts.csproj", "{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,18 @@ Global
 		{15160335-404E-4A0F-A36A-34453C15744B}.Release|x64.Build.0 = Release|Any CPU
 		{15160335-404E-4A0F-A36A-34453C15744B}.Release|x86.ActiveCfg = Release|Any CPU
 		{15160335-404E-4A0F-A36A-34453C15744B}.Release|x86.Build.0 = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|x64.Build.0 = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Debug|x86.Build.0 = Debug|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|x64.ActiveCfg = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|x64.Build.0 = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|x86.ActiveCfg = Release|Any CPU
+		{BCD7EA48-D9CB-4FFD-B48B-4FDE6B8F4B49}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

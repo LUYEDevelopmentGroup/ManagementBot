@@ -17,7 +17,7 @@ namespace CQ2IOT_HOST
     {
 
         public const string codeName = "ManaBot";
-        public const string version = " v0.1.52";
+        public const string version = " v0.1.57";
 
         private static string host;
         private static long me_qq;
