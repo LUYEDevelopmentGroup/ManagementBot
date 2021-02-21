@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BiliApi.Net\BiliApi.csproj" />
     <ProjectReference Include="..\BiliveDanmakuAgent\BiliveDanmakuAgent.csproj" />
+    <ProjectReference Include="..\BroadTicketUtility\BroadTicketUtility.csproj" />
   </ItemGroup>
 
   <ItemGroup>

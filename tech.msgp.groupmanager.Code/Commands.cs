@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 using BiliApi;
 using BiliApi.BiliPrivMessage;
+using BroadTicketUtility;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -489,6 +492,25 @@ namespace tech.msgp.groupmanager.Code
                                 break;
                             case "#debug_iscrew":
                                 MainHolder.broadcaster.BroadcastToAdminGroup("是否舰长：" + (DataBase.me.isBiliUserGuard(int.Parse(cmd[1])) ? "是" : "否"));
+                                break;
+                            case "#debug_ticket":
+                                Ticket a = new Ticket()
+                                {
+                                    Data = new Ticket.DataArea()
+                                    {
+                                        GenerateTime = DateTime.Now,
+                                        Level = Ticket.CrewLevel.总督,
+                                        SerialNumber = new Guid(),
+                                        SpecType = "summer",
+                                        Uid = -1
+                                    }
+                                };
+                                var img = TicketCoder.Encode(a);
+                                MemoryStream ms = new MemoryStream();
+                                img.Save(ms, ImageFormat.Png);
+                                var msg = session.UploadPictureAsync(UploadTarget.Group, ms).Result;
+                                session.SendGroupMessageAsync(e.Sender.Group.Id, msg);
+                                //MainHolder.broadcaster.BroadcastToAdminGroup("是否舰长：" + (DataBase.me.isBiliUserGuard(int.Parse(cmd[1])) ? "是" : "否"));
                                 break;
                             case "#debug_crewbuy":
                                 int uuid = int.Parse(cmd[1]);

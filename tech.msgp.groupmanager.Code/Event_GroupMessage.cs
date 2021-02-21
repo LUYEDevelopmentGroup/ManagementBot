@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using System.Xml;
 using BiliApi;
 using Newtonsoft.Json.Linq;
+using System.Drawing;
+using BroadTicketUtility;
+using BroadTicketUtility.Exceptions;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -210,6 +213,39 @@ namespace tech.msgp.groupmanager.Code
                                 }
                                 break;
                             case "Source":
+                                break;
+                            case "Image":
+                                {
+                                    try
+                                    {
+                                        ImageMessage message = (ImageMessage)msg;
+                                        Ticket t = TicketCoder.Decode(new Bitmap(PicLoader.loadPictureFromURL(message.Url)));
+                                        string l = "未知";
+                                        switch (t.Data.Level)
+                                        {
+                                            case Ticket.CrewLevel.舰长:
+                                                l = "舰长";
+                                                break;
+                                            case Ticket.CrewLevel.总督:
+                                                l = "总督";
+                                                break;
+                                            case Ticket.CrewLevel.提督:
+                                                l = "提督";
+                                                break;
+                                        }
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[船票]\n" +
+                                            "版本=" + t.Data.SpecType + "\n" +
+                                            "绑定UID=" + t.Data.Uid + "\n" +
+                                            "签发时间=" + t.Data.GenerateTime.ToString("yyyy MM dd HH:mm:ss") + "\n" +
+                                            "等级=" + l + "\n" +
+                                            "签名有效");
+                                    }
+                                    catch (SignatureInvalidException err)
+                                    {
+                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该船票签名无效");
+                                    }
+                                    catch { }
+                                }
                                 break;
                             default:
                                 break;

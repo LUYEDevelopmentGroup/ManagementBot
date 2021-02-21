@@ -131,7 +131,12 @@ namespace tech.msgp.groupmanager.Code
                 {
                     BiliUser.userlist = new Dictionary<int, BiliUser>();
                     dynamics = new List<BiliSpaceDynamic>();
-                    bilidmkproc = new BiliDanmakuProcessor(2064239);
+                    string str = "";
+                    foreach (Cookie c in bililogin.Cookies)
+                    {
+                        str += c.Name + "=" + c.Value + ";";
+                    }
+                    bilidmkproc = new BiliDanmakuProcessor(2064239, str);
                     bilidmkproc.Init_connection();
                     MainHolder.logger("SideLoad", "BLive-DMKReceiver is UP.", ConsoleColor.Black, ConsoleColor.White);
                 }

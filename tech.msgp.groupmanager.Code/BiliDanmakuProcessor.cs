@@ -1,6 +1,4 @@
-﻿using BililiveRecorder.Core;
-using BiliveDanmakuCli;
-using Mirai_CSharp.Models;
+﻿using Mirai_CSharp.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -8,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BiliApi;
 using BiliApi.BiliPrivMessage;
+using BiliveDanmakuAgent.Core;
+using BiliveDanmakuAgent;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -25,22 +25,33 @@ namespace tech.msgp.groupmanager.Code
         private readonly int streamer_id = 5659864;
         private readonly Dictionary<string, string> crews = new Dictionary<string, string>();
         private readonly List<int> viewerlist = new List<int>();
-
+        private string cookiestr;
 
         public BiliLiveRoom blr;
-        public BiliDanmakuProcessor(int roomid)
+        public BiliDanmakuProcessor(int roomid, string cstr = null)
         {
             liveid = roomid;
+            cookiestr = cstr;
         }
         public void Init_connection()
         {
-            LiveRoom lr = new LiveRoom(liveid);
+            LiveRoom lr = new LiveRoom(liveid,cookiestr);
             lr.sm.ReceivedDanmaku += Receiver_ReceivedDanmaku;
             lr.sm.StreamStarted += StreamStarted;
-            lr.sm.StreamStopped += StreamStopped;
-            lr.sm.ExceptionHappened += ExceptionHappened;
+            lr.sm.ExceptionHappened += Sm_ExceptionHappened; ;
+            lr.sm.LogOutput += Sm_LogOutput;
             lr.init_connection();
             blr = new BiliLiveRoom(liveid, MainHolder.bililogin);
+        }
+
+        private void Sm_LogOutput(object sender, string text)
+        {
+            MainHolder.logger("弹幕连接", text);
+        }
+
+        private void Sm_ExceptionHappened(object sender, Exception e, string desc = "")
+        {
+            MainHolder.logger("弹幕连接", desc + " - " + e.StackTrace);
         }
 
         private void doStreamCacuStability()
@@ -55,6 +66,9 @@ namespace tech.msgp.groupmanager.Code
                 failtimes = 0;
             }
         }
+
+        //private const bool DO_PUSH_LIVE = true;
+        private const bool DO_PUSH_LIVE = false;
 
         public void StreamStarted(object sender, StreamStartedArgs e)
         {
@@ -75,11 +89,14 @@ namespace tech.msgp.groupmanager.Code
             tlist.Clear();
             bool atall = (DateTime.Now.Hour < 23 && DateTime.Now.Hour > 6);
             DataBase.me.recBLive(lid, blr.title);
-            MainHolder.broadcaster.BroadcastToAllGroup(new IMessageBase[] {
+            if (DO_PUSH_LIVE)
+            {
+                MainHolder.broadcaster.BroadcastToAllGroup(new IMessageBase[] {
                 new PlainMessage("【直播通知】\n" + blr.title + "\nhttp://xn--z6ut02b.xn--8nx142eqwi.xn--6qq986b3xl/" + new Random().Next(100,99999)),
                 new ImageMessage(null,blr.cover,null),
                 atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>") });
-            if (MainHolder.useBiliRecFuncs) blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");
+                if (MainHolder.useBiliRecFuncs) blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");
+            }
             if (!ispickedup)
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup("开播\n事件识别ID:" + lid + "\n" + "https://live.bilibili.com/" + liveid);
@@ -122,7 +139,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public void StreamStopped(object sender)
+        public void StreamStopped()
         {
             DataBase.me.recBLiveEnd(lid, new_commers, viewerlist.Count(), 0, selver_coins, gold_coins);
             MainHolder.broadcaster.BroadcastToAdminGroup("直播结束\n事件识别ID " + lid + "\n\n直播数据统计(系统在线期间) \n" +
@@ -146,11 +163,6 @@ namespace tech.msgp.groupmanager.Code
                 str += t.Key + " -> " + t.Value;
             }
             MainHolder.broadcaster.BroadcastToAdminGroup(str);
-        }
-
-        public void ExceptionHappened(object sender, string message, Exception err)
-        {
-            MainHolder.logger("弹幕连接", message + " - " + err.StackTrace);
         }
 
         private static readonly Dictionary<string, int> tlist = new Dictionary<string, int>();
@@ -183,7 +195,7 @@ namespace tech.msgp.groupmanager.Code
                                     tlist.Add(e.Danmaku.UserName, ml);
                                 }
                             }
-                            DataBase.me.recBLiveDanmaku(e.Danmaku.UserID, e.Danmaku.CommentText, e.Danmaku.SendTime, lid);
+                            DataBase.me.recBLiveDanmaku(e.Danmaku.UserID, e.Danmaku.CommentText, TimestampHandler.GetTimeStamp(DateTime.Now), lid);
                             if (!DataBase.me.isBiliUserExist(e.Danmaku.UserID))
                             {
                                 new_commers++;
@@ -264,11 +276,11 @@ namespace tech.msgp.groupmanager.Code
                                 }
                             }
                             DataBase.me.recUserBuyGuard(e.Danmaku.UserID, e.Danmaku.GiftCount, e.Danmaku.UserGuardLevel, lid);
-                            int timestamp = e.Danmaku.SendTime;
-                            if (timestamp < 1600000000)
-                            {
-                                timestamp = TimestampHandler.GetTimeStamp(DateTime.Now);//使用备用时间戳生成方式
-                            }
+                            //int timestamp = e.Danmaku;
+                            //if (timestamp < 1600000000)
+                            //{
+                            var timestamp = TimestampHandler.GetTimeStamp(DateTime.Now);//使用备用时间戳生成方式
+                            //}
                             SendKeyToCrewMember(e.Danmaku.UserID, e.Danmaku.GiftCount, e.Danmaku.UserGuardLevel, timestamp, dpword, isnew);
                             break;
 
@@ -310,7 +322,7 @@ namespace tech.msgp.groupmanager.Code
                             DataBase.me.addBiliUser(e.Danmaku.UserID, e.Danmaku.UserName);
                             break;
                         case MsgTypeEnum.LiveEnd:
-                        case MsgTypeEnum.LiveStart:
+                            StreamStopped();
                             break;
                         default:
                             JObject obj = JObject.Parse(e.Danmaku.RawData);

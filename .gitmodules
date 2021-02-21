@@ -4,3 +4,6 @@
 [submodule "BiliveDanmakuAgent"]
 	path = BiliveDanmakuAgent
 	url = https://github.com/developer-ken/BiliveDanmakuAgent.git
+[submodule "EncryptLib"]
+	path = EncryptLib
+	url = https://github.com/developer-ken/EncryptLib.git
