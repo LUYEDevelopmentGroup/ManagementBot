@@ -137,6 +137,12 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
+        public bool SendToQQ(long qq, IMessageBase[] message, long tg)
+        {
+            MainHolder.session.SendTempMessageAsync(qq, tg, message);
+            return true;
+        }
+
         public bool SendToQQ(long qq, string msg, long tg)
         {
             MainHolder.session.SendTempMessageAsync(qq, tg, new PlainMessage(msg));

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -32,6 +33,8 @@ namespace tech.msgp.groupmanager.Code
                 return "";
             }
         }
+
+
 
         public static string _Jget(string url)
         {
@@ -90,7 +93,7 @@ namespace tech.msgp.groupmanager.Code
             JObject j = (JObject)JsonConvert.DeserializeObject(res);
             JArray jarray = (JArray)j["skinDomains"];
             List<string> lst = new List<string>();
-            foreach(JValue jb in jarray)
+            foreach (JValue jb in jarray)
             {
                 lst.Add(jb.Value<string>());
             }

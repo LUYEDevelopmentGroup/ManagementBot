@@ -202,7 +202,7 @@ namespace tech.msgp.groupmanager.Code
                                             JObject jb = JObject.Parse(message.Content);
                                             abvn = AVFinder.bvFromB23url(jb["meta"]["detail_1"]["qqdocurl"].ToString());
                                         }
-                                        catch
+                                         catch
                                         {
 
                                         }
@@ -233,9 +233,10 @@ namespace tech.msgp.groupmanager.Code
                                                 l = "提督";
                                                 break;
                                         }
+                                        BiliUser bu = new BiliUser(t.Data.Uid, MainHolder.biliapi);
                                         MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[船票]\n" +
                                             "版本=" + t.Data.SpecType + "\n" +
-                                            "绑定UID=" + t.Data.Uid + "\n" +
+                                            "绑定账号=" + bu.name + "#" + t.Data.Uid + "\n" +
                                             "签发时间=" + t.Data.GenerateTime.ToString("yyyy MM dd HH:mm:ss") + "\n" +
                                             "等级=" + l + "\n" +
                                             "签名有效");

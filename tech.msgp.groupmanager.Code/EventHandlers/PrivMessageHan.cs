@@ -13,6 +13,8 @@ using tech.msgp.groupmanager.Code.MCServer;
 using static tech.msgp.groupmanager.Code.DataBase;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -30,6 +32,36 @@ namespace tech.msgp.groupmanager.Code
             {
                 if (msgtext.IndexOf("#") != 0)
                 {
+                    try
+                    {
+                        var ticket = BroadTicketUtility.TicketCoder.Decode(msgtext);
+                        long qq = DataBase.me.getUserBoundedQQ(ticket.Data.Uid);
+                        if (qq <= 0)
+                        {
+                            DataBase.me.boundBiliWithQQ(ticket.Data.Uid, rep.qq);
+                            rep.reply("已将您的QQ与Bilibili账号绑定。");
+                            qq = rep.qq;
+                        }
+                        if (qq != rep.qq)
+                        {
+                            rep.reply("我无法为您兑换船票，因为您Bilibili账号绑定的QQ与当前QQ不符。\n绑定的QQ：******" + qq.ToString()[6..] + "\n如果您确信这是一个误会，请联系运维@鸡蛋(1250542735)");
+                            MainHolder.broadcaster.BroadcastToAdminGroup("船票兑换失败\nQQ<" + rep.qq + ">试图兑换船票{Serial=" + ticket.Data.SerialNumber + "}\n该船票颁发给BiliUID#" + ticket.Data.Uid + "@QQ<" + qq + ">\n拒绝兑换。");
+                            return;
+                        }
+                        try
+                        {
+                            rep.reply(BroadTicketUtility.TicketCoder.Encode(ticket, false));
+                            MainHolder.broadcaster.BroadcastToAdminGroup("船票兑换成功\nQQ<" + rep.qq + ">试图兑换船票{Serial=" + ticket.Data.SerialNumber + "}\n该船票颁发给BiliUID#" + ticket.Data.Uid + "\n已兑换。");
+                            rep.reply("兑换成功，感谢您对鹿野的支持！");
+                        }
+                        catch (Exception err)
+                        {
+                            MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n兑换船票时发生了一个错误：\n" + err.Message + "\nStack:\n" + err.StackTrace);
+                            rep.reply("出现了一个错误，无法为您生成船票。请复制本消息并联系运维@鸡蛋(1250542735)\n" + err.Message + "\nStack:\n" + err.StackTrace);
+                        }
+                        return;
+                    }
+                    catch { }
                     MainHolder.broadcaster.SendToAnEgg(msgtext);
                 }
                 else
@@ -627,6 +659,8 @@ namespace tech.msgp.groupmanager.Code
         {
             public long qq;
             public abstract void reply(string msg);
+            public abstract void reply(IMessageBase[] chain);
+            public abstract void reply(Bitmap image);
         }
         public class MsgReplyTemp : MsgReply
         {
@@ -635,12 +669,39 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.broadcaster.SendToQQ(qq, msg, fromGroup);
             }
+            public override void reply(IMessageBase[] chain)
+            {
+                MainHolder.broadcaster.SendToQQ(qq, chain, fromGroup);
+            }
+
+            public override void reply(Bitmap image)
+            {
+                MemoryStream ms = new MemoryStream();
+                image.Save(ms, ImageFormat.Png);
+                ms.Seek(0, SeekOrigin.Begin);
+                var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
+                MainHolder.broadcaster.SendToQQ(qq, new IMessageBase[] { pmsg }, fromGroup);
+            }
         }
         public class MsgReplyFriend : MsgReply
         {
             public override void reply(string msg)
             {
                 MainHolder.broadcaster.SendToQQ(qq, msg);
+            }
+
+            public override void reply(IMessageBase[] chain)
+            {
+                MainHolder.broadcaster.SendToQQ(qq, chain);
+            }
+
+            public override void reply(Bitmap image)
+            {
+                MemoryStream ms = new MemoryStream();
+                image.Save(ms, ImageFormat.Png);
+                ms.Seek(0, SeekOrigin.Begin);
+                var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
+                MainHolder.broadcaster.SendToQQ(qq, new IMessageBase[] { pmsg });
             }
         }
         #endregion

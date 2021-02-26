@@ -13,6 +13,8 @@ namespace tech.msgp.groupmanager.Code
 {
     internal class Commands
     {
+        public static string stagename = "summer";
+
         private static string[] bannedKeywords = { "open(", "import", "system(", "exec", "eval", "input", "read",
         "sleep","delay","while","write","stream"};
         public static List<string> getAllPictures(IGroupMessageEventArgs e)
@@ -27,6 +29,58 @@ namespace tech.msgp.groupmanager.Code
                 }
             }
             return list;
+        }
+
+        public static void SendTicket(int uid, int level)
+        {
+            Ticket a = new Ticket()
+            {
+                Data = new Ticket.DataArea()
+                {
+                    GenerateTime = DateTime.Now,
+                    Level = (Ticket.CrewLevel)level,
+                    SerialNumber = Guid.NewGuid(),
+                    SpecType = stagename,
+                    Uid = uid
+                }
+            };
+            var img = TicketCoder.Encode(a);
+            MemoryStream ms = new MemoryStream();
+            img.Save(ms, ImageFormat.Png);
+            ms.Seek(0, SeekOrigin.Begin);
+            bool succeed = false;
+            while (true)
+            {
+                if (DataBase.me.isUserBoundedQQ(uid))
+                {
+                    var msg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
+                    var tgroups = DataBase.me.whichGroupsAreTheUserIn(DataBase.me.getUserBoundedQQ(uid));
+                    if (tgroups.Count >= 1)
+                    {
+                        var tgroup = tgroups[0];
+                        var r = MainHolder.session.SendTempMessageAsync(DataBase.me.getUserBoundedQQ(uid), tgroup, msg).Result;
+                        succeed = true;
+                        break;
+                    }
+                }
+                PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);
+                succeed = true;
+                if (!session.SendImage(img))
+                {
+                    succeed = session.sendMessage(a.ToString());
+                    session.sendMessage("发不了图片QAQ 复制上面的消息找[管理组鸡蛋🥚]索要船票噢");
+                }
+                break;
+            }
+            if (!succeed)
+            {
+                var msg = MainHolder.session.UploadPictureAsync(UploadTarget.Group, ms).Result;
+                MainHolder.broadcaster.BroadcastToAdminGroup(new IMessageBase[] { new PlainMessage("船员<" + uid + ">的船票无法送达"), msg });
+            }
+            else
+            {
+                MainHolder.broadcaster.BroadcastToAdminGroup(new IMessageBase[] { new PlainMessage("船员<" + uid + ">船票已送达\nSerial=" + a.Data.SerialNumber.ToString()) });
+            }
         }
 
         public static List<long> getAllAts(IGroupMessageEventArgs e)
@@ -494,23 +548,7 @@ namespace tech.msgp.groupmanager.Code
                                 MainHolder.broadcaster.BroadcastToAdminGroup("是否舰长：" + (DataBase.me.isBiliUserGuard(int.Parse(cmd[1])) ? "是" : "否"));
                                 break;
                             case "#debug_ticket":
-                                Ticket a = new Ticket()
-                                {
-                                    Data = new Ticket.DataArea()
-                                    {
-                                        GenerateTime = DateTime.Now,
-                                        Level = Ticket.CrewLevel.总督,
-                                        SerialNumber = new Guid(),
-                                        SpecType = "summer",
-                                        Uid = -1
-                                    }
-                                };
-                                var img = TicketCoder.Encode(a);
-                                MemoryStream ms = new MemoryStream();
-                                img.Save(ms, ImageFormat.Png);
-                                var msg = session.UploadPictureAsync(UploadTarget.Group, ms).Result;
-                                session.SendGroupMessageAsync(e.Sender.Group.Id, msg);
-                                //MainHolder.broadcaster.BroadcastToAdminGroup("是否舰长：" + (DataBase.me.isBiliUserGuard(int.Parse(cmd[1])) ? "是" : "否"));
+                                SendTicket(int.Parse(cmd[1]), int.Parse(cmd[2]));
                                 break;
                             case "#debug_crewbuy":
                                 int uuid = int.Parse(cmd[1]);

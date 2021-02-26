@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Socket.Io.Client.Core" Version="1.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>

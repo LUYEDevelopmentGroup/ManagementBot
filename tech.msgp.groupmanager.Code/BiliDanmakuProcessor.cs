@@ -384,35 +384,13 @@ namespace tech.msgp.groupmanager.Code
                         MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
                         return false;
                     }
-                    succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！成为船员您可以加入舰长群，并有机会获得小礼品。请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
-                    succeed = succeed && session.sendMessage(token);
-                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将通知管理协助您进入舰长群并登记享受更多权益。【请回复纯数字，该系统无人值守，私信由软件接收】");
+                    //succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！成为船员您可以加入舰长群，并有机会获得小礼品。请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
+                    //succeed = succeed && session.sendMessage(token);
+                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号并协助您加入舰长群。【请回复纯数字，该系统无人值守，私信由软件接收】");
                     DataBase.me.addBiliPending(uid);
-                    MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 新·" + clevel);
+                    MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信询问QQ    新·" + clevel);
                 }
-                else
-                {//已绑定QQ
-                    long qq = DataBase.me.getUserBoundedQQ(uid);
-                    long tgroup = DataBase.me.whichGroupsAreTheUserIn(qq)[0];
-                    bool res = MainHolder.broadcaster.SendToQQ(qq, "欢迎新" + clevel + "上船！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。", tgroup);
-                    if (res)
-                    {
-                        res = MainHolder.broadcaster.SendToQQ(qq, token, tgroup);
-                        succeed = res;
-                        MainHolder.broadcaster.BroadcastToAdminGroup("已通过QQ将token发送给 新·" + clevel);
-                    }
-                    else//用QQ发送失败 FallBack到B站私信
-                    {
-                        if (!MainHolder.useBiliRecFuncs)
-                        {
-                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
-                            return false;
-                        }
-                        succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
-                        succeed = succeed && session.sendMessage(token);
-                        MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 新·" + clevel);
-                    }
-                }
+
             }
             else
             {
@@ -423,53 +401,12 @@ namespace tech.msgp.groupmanager.Code
                         MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
                         return false;
                     }
-                    succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
-                    succeed = succeed && session.sendMessage(token);
-                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将通知管理协助您进入舰长群并登记享受更多权益。【请回复纯数字，该系统无人值守，私信由软件接收】");
+                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号【请回复纯数字，该系统无人值守，私信由软件接收】");
                     DataBase.me.addBiliPending(uid);
-                    MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 续航·" + clevel);
-                }
-                else
-                {//已绑定QQ
-                    long qq = DataBase.me.getUserBoundedQQ(uid);
-                    long tgroup = 0;
-                    try
-                    {
-                        tgroup = DataBase.me.whichGroupsAreTheUserIn(qq)[0];
-                    }
-                    catch
-                    {
-                        if (!MainHolder.useBiliRecFuncs)
-                        {
-                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
-                            return false;
-                        }
-                        //fall back to BiliPrivMessage
-                        succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
-                        succeed = succeed && session.sendMessage(token);
-                        MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信(QQ无群联系)将token发送给 续航·" + clevel);
-                        return succeed;
-                    }
-                    bool res = MainHolder.broadcaster.SendToQQ(qq, "欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。", tgroup);
-                    if (res)
-                    {
-                        res = MainHolder.broadcaster.SendToQQ(qq, token, tgroup);
-                        succeed = res;
-                        MainHolder.broadcaster.BroadcastToAdminGroup("已通过QQ将token发送给 续航·" + clevel);
-                    }
-                    else//用QQ发送失败 FallBack到B站私信
-                    {
-                        if (!MainHolder.useBiliRecFuncs)
-                        {
-                            MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
-                            return false;
-                        }
-                        succeed = succeed && session.sendMessage("欢迎您续航" + clevel + "！请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
-                        succeed = succeed && session.sendMessage(token);
-                        MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信将token发送给 续航·" + clevel);
-                    }
+                    MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信询问QQ     续航·" + clevel);
                 }
             }
+            Commands.SendTicket(uid, crewlevel);
             return succeed;
         }
 

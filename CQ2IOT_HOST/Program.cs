@@ -30,8 +30,7 @@ namespace CQ2IOT_HOST
         private static void Main(string[] args)
         {
             DateTime start = DateTime.Now;
-            logger("MainThread", "Getting IPv4 Address...");
-            string ipv4_ip = NetworkInfo.GetLocalIpAddress();
+            string ipv4_ip = "";//NetworkInfo.GetLocalIpAddress();
             MainHolder.logger = logger;
             bool booted = false;
             Exception exc = null;

@@ -7,22 +7,13 @@ namespace tech.msgp.groupmanager.Code
 {
     internal class PrivmessageChecker
     {
-        public static Thread main;
         public static PrivSessionManager man;
         //public static List<long> sent = new List<long>();
         public static void startthreads()
         {
             if (!MainHolder.useBiliRecFuncs) return;
-            if (main != null && main.IsAlive)
-            {
-                //main
-            }
-            else
-            {
-                man = new PrivSessionManager(MainHolder.biliapi);
-                main = new Thread(new ThreadStart(run));
-                main.Start();
-            }
+            man = new PrivSessionManager(MainHolder.biliapi);
+            MainHolder.pool.submitWorkload(run);
         }
         public static void run()
         {
@@ -90,7 +81,7 @@ namespace tech.msgp.groupmanager.Code
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[B站私信部分_外循环]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace + "\n-= Func Failure =-");
                     }
-                    Thread.Sleep(15000);
+                    Thread.Sleep(2*60*1000);
                 }
             }
             catch(Exception err)

@@ -10,6 +10,9 @@ using System.Threading;
 using BiliApi;
 using tech.msgp.groupmanager.Code.TCPMessageProcessor;
 using System.Web;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using BiliApi.Auth;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -103,18 +106,52 @@ namespace tech.msgp.groupmanager.Code
 
             pool.submitWorkload(new pThreadPool.workload(() =>
             {
+                BinaryFormatter bf = new BinaryFormatter();
                 while (true)
                 {
                     try
                     {
                         while (!doBiliLogin) Thread.Sleep(500);
-                        bililogin = new BiliApi.Auth.QRLogin();
-                        broadcaster.BroadcastToAdminGroup(new IMessageBase[] {
+                        while (true)
+                        {
+                            if (File.Exists("bililogin.bin"))
+                            {
+                                bililogin = null;
+                                try
+                                {
+                                    using (var fs = File.OpenRead("bililogin.bin"))
+                                    {
+                                        bililogin = (QRLogin)bf.Deserialize(fs);
+                                    }
+                                    if (bililogin.IsOnline())
+                                    {
+                                        logger("Bililogin", "已使用预先保存的状态登录");
+                                        broadcaster.BroadcastToAdminGroup("已从存档恢复相关数据并获取必要的授权，将释放被挂起的模块。");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        logger("Bililogin", "保存的登录状态不可用");
+                                    }
+                                }
+                                catch
+                                {
+                                    logger("Bililogin", "未能从bililogin.bin中恢复保存的登录状态");
+                                }
+                            }
+                            bililogin = new BiliApi.Auth.QRLogin();
+                            broadcaster.BroadcastToAdminGroup(new IMessageBase[] {
                             new ImageMessage(null, "https://api.pwmqr.com/qrcode/create/?url=" + HttpUtility.UrlEncode(bililogin.QRToken.ScanUrl), null),
                             new PlainMessage("Token="+bililogin.QRToken.OAuthKey+"\n部分模块依赖B站账号访问权，已挂起。授权完成后将释放它们。")
-                        });
-                        bililogin.Login();
-                        broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
+                            });
+                            bililogin.Login();
+                            broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
+                            if (File.Exists("bililogin.bin")) File.Delete("bililogin.bin");
+                            var fsw = File.OpenWrite("bililogin.bin");
+                            bf.Serialize(fsw, bililogin);
+                            fsw.Flush(); fsw.Close();
+                            break;
+                        }
                         biliapi = new BiliApi.ThirdPartAPIs(bililogin.Cookies);
                         break;
                     }
@@ -160,6 +197,7 @@ namespace tech.msgp.groupmanager.Code
                 {
                     MainHolder.logger("SideLoad", "BiliPrivMessageReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                 }
+                return;
                 try
                 {
                     DynChecker.startthreads();

@@ -11,7 +11,7 @@ namespace BroadTicketUtility
         [Serializable]
         public enum CrewLevel
         {
-            舰长 = 0, 总督 = 1, 提督 = 2
+            舰长 = 3, 总督 = 1, 提督 = 2
         }
 
         [Serializable]
@@ -26,5 +26,10 @@ namespace BroadTicketUtility
 
         public byte[] Signature;
         public DataArea Data;
+
+        public new string ToString()
+        {
+            return TicketCoder.GetString(this);
+        }
     }
 }

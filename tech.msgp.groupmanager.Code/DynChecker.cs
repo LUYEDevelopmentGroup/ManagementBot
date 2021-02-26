@@ -26,8 +26,7 @@ namespace tech.msgp.groupmanager.Code
                 {
                     MainHolder.dynamics.Add(new BiliApi.BiliSpaceDynamic(uid,MainHolder.bililogin));
                 }
-                main = new Thread(new ThreadStart(run));
-                main.Start();
+                MainHolder.pool.submitWorkload(run);
             }
         }
 
