@@ -28,6 +28,8 @@ namespace tech.msgp.groupmanager.Code
         private string cookiestr;
 
         public BiliLiveRoom blr;
+        public LiveRoom lr;
+
         public BiliDanmakuProcessor(int roomid, string cstr = null)
         {
             liveid = roomid;
@@ -35,7 +37,7 @@ namespace tech.msgp.groupmanager.Code
         }
         public void Init_connection()
         {
-            LiveRoom lr = new LiveRoom(liveid,cookiestr);
+            lr = new LiveRoom(liveid,cookiestr);
             lr.sm.ReceivedDanmaku += Receiver_ReceivedDanmaku;
             lr.sm.StreamStarted += StreamStarted;
             lr.sm.ExceptionHappened += Sm_ExceptionHappened; ;

@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiliApi", "BiliApi.Net\Bili
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiliveDanmakuAgent", "BiliveDanmakuAgent\BiliveDanmakuAgent.csproj", "{15160335-404E-4A0F-A36A-34453C15744B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BroadTicketUtility", "BroadTicketUtility\BroadTicketUtility.csproj", "{EFA3E707-9A9A-46AB-80DE-D8436A1BF5D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BroadTicketUtility", "BroadTicketUtility\BroadTicketUtility.csproj", "{EFA3E707-9A9A-46AB-80DE-D8436A1BF5D3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EncryptLib", "EncryptLib\EncryptLib.csproj", "{AB44B70E-218B-4EC3-98DA-6F699E809ED9}"
 EndProject

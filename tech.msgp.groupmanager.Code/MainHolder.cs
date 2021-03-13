@@ -13,6 +13,8 @@ using System.Web;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using BiliApi.Auth;
+using tech.msgp.groupmanager.Code.ScriptHandler;
+using tech.msgp.groupmanager.Code.MCServer;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -104,6 +106,7 @@ namespace tech.msgp.groupmanager.Code
                 }
             }
 
+            //B站登录、加载相关模块
             pool.submitWorkload(new pThreadPool.workload(() =>
             {
                 BinaryFormatter bf = new BinaryFormatter();
@@ -197,6 +200,19 @@ namespace tech.msgp.groupmanager.Code
                 {
                     MainHolder.logger("SideLoad", "BiliPrivMessageReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                 }
+                try
+                {
+                    AdminJScriptHandler.JsEngine.SetValue("BiliAPI", biliapi);
+                    AdminJScriptHandler.JsEngine.SetValue("StreamMonitor", bilidmkproc.lr.sm);
+                    AdminJScriptHandler.JsEngine.SetValue("LiveRoom", bilidmkproc.blr);
+                    AdminJScriptHandler.JsEngine.SetValue("DataBase", DataBase.me);
+                    AdminJScriptHandler.JsEngine.SetValue("MCDataBase", DBHandler.me);
+
+                }
+                catch
+                {
+                    //不处理错误
+                }
                 return;
                 try
                 {
@@ -208,6 +224,20 @@ namespace tech.msgp.groupmanager.Code
                     MainHolder.logger("SideLoad", "DynChecker FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                 }
             }));
+
+            try
+            {
+                AdminJScriptHandler.InitEngine();
+                UserJScriptHandler.InitEngine();
+                
+                AdminJScriptHandler.JsEngine.SetValue("biliready", false);
+
+                MainHolder.logger("SideLoad", "JSEngine is UP.", ConsoleColor.Black, ConsoleColor.White);
+            }
+            catch (Exception)
+            {
+                MainHolder.logger("SideLoad", "JSEngine FAILED.", ConsoleColor.Black, ConsoleColor.Red);
+            }
 
             try
             {

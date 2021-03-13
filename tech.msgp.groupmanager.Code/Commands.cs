@@ -8,6 +8,7 @@ using BiliApi.BiliPrivMessage;
 using BroadTicketUtility;
 using System.IO;
 using System.Drawing.Imaging;
+using tech.msgp.groupmanager.Code.ScriptHandler;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -165,6 +166,7 @@ namespace tech.msgp.groupmanager.Code
         }
 
         public static long cocogroup = -1;
+        public static DateTime lastUserexecute = DateTime.Now;
 
         public static void Proc(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr)
         {
@@ -174,6 +176,25 @@ namespace tech.msgp.groupmanager.Code
             }
             else
             {//是一条指令
+                if (clearstr.IndexOf("//script") == 0)
+                {//是脚本
+                    if (DataBase.me.isUserOperator(e.Sender.Id))
+                    {//管理员脚本
+                        var result = AdminJScriptHandler.EvaluateJs(clearstr);
+                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "<Script Engine>\nRole=管理员\n执行结果>\n" + result);
+                    }
+                    else
+                    {
+                        if ((DateTime.Now - lastUserexecute).TotalSeconds<10)
+                        {
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "<Script Engine>\n拒绝执行：用户不能频繁提交脚本");
+                        }
+                        var result = UserJScriptHandler.EvaluateJs(clearstr);
+                        lastUserexecute = DateTime.Now;
+                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "<Script Engine>\nRole=用户\n执行结果>\n" + result);
+                    }
+                    return;
+                }
                 if (DataBase.me.isUserOperator(e.Sender.Id))//仅允许数据库中的管理员
                 {
                     try
