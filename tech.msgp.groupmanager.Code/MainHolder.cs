@@ -202,12 +202,13 @@ namespace tech.msgp.groupmanager.Code
                 }
                 try
                 {
+                   /*
                     AdminJScriptHandler.JsEngine.SetValue("BiliAPI", biliapi);
                     AdminJScriptHandler.JsEngine.SetValue("StreamMonitor", bilidmkproc.lr.sm);
                     AdminJScriptHandler.JsEngine.SetValue("LiveRoom", bilidmkproc.blr);
                     AdminJScriptHandler.JsEngine.SetValue("DataBase", DataBase.me);
                     AdminJScriptHandler.JsEngine.SetValue("MCDataBase", DBHandler.me);
-
+                    */
                 }
                 catch
                 {
@@ -230,7 +231,7 @@ namespace tech.msgp.groupmanager.Code
                 AdminJScriptHandler.InitEngine();
                 UserJScriptHandler.InitEngine();
                 
-                AdminJScriptHandler.JsEngine.SetValue("biliready", false);
+                //AdminJScriptHandler.JsEngine.SetValue("biliready", false);
 
                 MainHolder.logger("SideLoad", "JSEngine is UP.", ConsoleColor.Black, ConsoleColor.White);
             }
