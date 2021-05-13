@@ -52,6 +52,7 @@ namespace tech.msgp.groupmanager.Code
             bool succeed = false;
             while (true)
             {
+                /*
                 if (DataBase.me.isUserBoundedQQ(uid))
                 {
                     var msg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
@@ -64,6 +65,7 @@ namespace tech.msgp.groupmanager.Code
                         break;
                     }
                 }
+                */
                 PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);
                 succeed = true;
                 if (!session.SendImage(img))

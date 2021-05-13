@@ -12,14 +12,28 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
     {
         public async Task<bool> GroupApply(MiraiHttpSession session, IGroupApplyEventArgs e)
         {
+            if (DataBase.me.isUserBlacklisted(e.FromQQ))
+            {
+                MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 存在于黑名单中，自动拒绝。");
+                await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您被设置不能加入任何粉丝群。");
+                return true;
+            }
+            switch (DataBase.me.isUserTrusted(e.FromQQ))
+            {
+                case 1:
+                    DataBase.me.removeUserTrustlist(e.FromQQ);
+                    MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 受到单次信任，同意入群。\n该次信任已被移除。");
+                    goto case 9;//显式允许直接进入下一个case
+                case 0:
+                    MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 受到永久信任，同意入群。");
+                    goto case 9;//显式允许直接进入下一个case
+                    break;
+                case 9:
+                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
+                    return true;
+            }
             if (DataBase.me.isCrewGroup(e.FromGroup))
             {//是舰长群
-                if (DataBase.me.isUserBlacklisted(e.FromQQ))
-                {
-                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "我无权让您入群，请联系管理员。");
-                    MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n黑名单，拒绝");
-                }
-                else
                 if (DataBase.me.isUserBoundedUID(e.FromQQ))//舰长绑定
                 {
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
@@ -33,12 +47,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             }
             else
             {
-                if (DataBase.me.isUserBlacklisted(e.FromQQ))
-                {
-                    MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 存在于黑名单中，自动拒绝。");
-                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您被设置不能加入任何粉丝群。");
-                    return true;
-                }
+                
                 var groups = DataBase.me.whichGroupsAreTheUserIn(e.FromQQ);
                 if (groups.Count > 1)
                 {
