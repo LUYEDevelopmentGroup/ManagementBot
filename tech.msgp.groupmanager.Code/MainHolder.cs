@@ -150,9 +150,15 @@ namespace tech.msgp.groupmanager.Code
                             bililogin.Login();
                             broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
                             if (File.Exists("bililogin.bin")) File.Delete("bililogin.bin");
-                            var fsw = File.OpenWrite("bililogin.bin");
-                            bf.Serialize(fsw, bililogin);
-                            fsw.Flush(); fsw.Close();
+                            try
+                            {
+                                var fsw = File.OpenWrite("bililogin.bin");
+                                bf.Serialize(fsw, bililogin);
+                                fsw.Flush(); fsw.Close();
+                            }catch(Exception err)
+                            {
+                                broadcaster.BroadcastToAdminGroup("BiliApi.NET返回了一处错误：" + err.Message + "\n 该错误不致命，将忽略该错误并继续执行剩余操作。");
+                            }
                             break;
                         }
                         biliapi = new BiliApi.ThirdPartAPIs(bililogin.Cookies);
