@@ -15,6 +15,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using BiliApi.Auth;
 using tech.msgp.groupmanager.Code.ScriptHandler;
 using tech.msgp.groupmanager.Code.MCServer;
+using Newtonsoft.Json;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -109,7 +110,6 @@ namespace tech.msgp.groupmanager.Code
             //B站登录、加载相关模块
             pool.submitWorkload(new pThreadPool.workload(() =>
             {
-                BinaryFormatter bf = new BinaryFormatter();
                 while (true)
                 {
                     try
@@ -122,10 +122,9 @@ namespace tech.msgp.groupmanager.Code
                                 bililogin = null;
                                 try
                                 {
-                                    using (var fs = File.OpenRead("bililogin.bin"))
-                                    {
-                                        bililogin = (QRLogin)bf.Deserialize(fs);
-                                    }
+                                    var js = File.ReadAllText("bili_login_info.json");
+                                    bililogin = JsonConvert.DeserializeObject<QRLogin>(js);
+
                                     if (bililogin.IsOnline())
                                     {
                                         logger("Bililogin", "已使用预先保存的状态登录");
@@ -152,10 +151,10 @@ namespace tech.msgp.groupmanager.Code
                             if (File.Exists("bililogin.bin")) File.Delete("bililogin.bin");
                             try
                             {
-                                var fsw = File.OpenWrite("bililogin.bin");
-                                bf.Serialize(fsw, bililogin);
-                                fsw.Flush(); fsw.Close();
-                            }catch(Exception err)
+                                var js = JsonConvert.SerializeObject(bililogin, Formatting.None);
+                                File.WriteAllText("bili_login_info.json", js);
+                            }
+                            catch (Exception err)
                             {
                                 broadcaster.BroadcastToAdminGroup("BiliApi.NET返回了一处错误：" + err.Message + "\n 该错误不致命，将忽略该错误并继续执行剩余操作。");
                             }
@@ -208,13 +207,13 @@ namespace tech.msgp.groupmanager.Code
                 }
                 try
                 {
-                   /*
-                    AdminJScriptHandler.JsEngine.SetValue("BiliAPI", biliapi);
-                    AdminJScriptHandler.JsEngine.SetValue("StreamMonitor", bilidmkproc.lr.sm);
-                    AdminJScriptHandler.JsEngine.SetValue("LiveRoom", bilidmkproc.blr);
-                    AdminJScriptHandler.JsEngine.SetValue("DataBase", DataBase.me);
-                    AdminJScriptHandler.JsEngine.SetValue("MCDataBase", DBHandler.me);
-                    */
+                    /*
+                     AdminJScriptHandler.JsEngine.SetValue("BiliAPI", biliapi);
+                     AdminJScriptHandler.JsEngine.SetValue("StreamMonitor", bilidmkproc.lr.sm);
+                     AdminJScriptHandler.JsEngine.SetValue("LiveRoom", bilidmkproc.blr);
+                     AdminJScriptHandler.JsEngine.SetValue("DataBase", DataBase.me);
+                     AdminJScriptHandler.JsEngine.SetValue("MCDataBase", DBHandler.me);
+                     */
                 }
                 catch
                 {
@@ -236,7 +235,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 AdminJScriptHandler.InitEngine();
                 UserJScriptHandler.InitEngine();
-                
+
                 //AdminJScriptHandler.JsEngine.SetValue("biliready", false);
 
                 MainHolder.logger("SideLoad", "JSEngine is UP.", ConsoleColor.Black, ConsoleColor.White);
