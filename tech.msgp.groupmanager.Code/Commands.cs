@@ -34,6 +34,7 @@ namespace tech.msgp.groupmanager.Code
 
         public static void SendTicket(int uid, int level)
         {
+            return;
             Ticket a = new Ticket()
             {
                 Data = new Ticket.DataArea()
