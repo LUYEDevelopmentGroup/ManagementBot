@@ -101,9 +101,11 @@ namespace tech.msgp.groupmanager.Code
                     MainHolder.Logger.Info("SideLoad", "DBConnectiong pool is UP.");
                     break;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     MainHolder.logger("SideLoad", "FATAL - DBConnectiong FAILED.", ConsoleColor.Black, ConsoleColor.Red);
+                    MainHolder.logger("Database", e.Message, ConsoleColor.Black, ConsoleColor.Yellow);
+                    MainHolder.logger("Database", e.StackTrace, ConsoleColor.Black, ConsoleColor.Yellow);
                 }
             }
 
@@ -117,7 +119,7 @@ namespace tech.msgp.groupmanager.Code
                         while (!doBiliLogin) Thread.Sleep(500);
                         while (true)
                         {
-                            if (File.Exists("bililogin.bin"))
+                            if (File.Exists("bili_login_info.json"))
                             {
                                 bililogin = null;
                                 try
@@ -148,7 +150,7 @@ namespace tech.msgp.groupmanager.Code
                             });
                             bililogin.Login();
                             broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
-                            if (File.Exists("bililogin.bin")) File.Delete("bililogin.bin");
+                            if (File.Exists("bili_login_info.json")) File.Delete("bili_login_info.json");
                             try
                             {
                                 var js = JsonConvert.SerializeObject(bililogin, Formatting.None);
