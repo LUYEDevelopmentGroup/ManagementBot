@@ -89,7 +89,7 @@ namespace tech.msgp.groupmanager.Code
         }
         public static void INIT(JObject config)
         {
-
+            Directory.CreateDirectory("saves");
             while (true)
             {
                 try
@@ -119,15 +119,15 @@ namespace tech.msgp.groupmanager.Code
                         while (!doBiliLogin) Thread.Sleep(500);
                         while (true)
                         {
-                            if (File.Exists("bili_login_info.json"))
+                            if (File.Exists("saves/bili_login_info.json"))
                             {
                                 bililogin = null;
                                 try
                                 {
-                                    var js = File.ReadAllText("bili_login_info.json");
-                                    bililogin = JsonConvert.DeserializeObject<QRLogin>(js);
-
-                                    if (bililogin.IsOnline())
+                                    var js = File.ReadAllText("saves/bili_login_info.json");
+                                    logger("Bililogin", "Records read.");
+                                    bililogin = new QRLogin(js);
+                                    if (bililogin.LoggedIn)
                                     {
                                         logger("Bililogin", "已使用预先保存的状态登录");
                                         broadcaster.BroadcastToAdminGroup("已从存档恢复相关数据并获取必要的授权，将释放被挂起的模块。");
@@ -138,9 +138,10 @@ namespace tech.msgp.groupmanager.Code
                                         logger("Bililogin", "保存的登录状态不可用");
                                     }
                                 }
-                                catch
+                                catch (Exception err)
                                 {
-                                    logger("Bililogin", "未能从bililogin.bin中恢复保存的登录状态");
+                                    logger("Bililogin", "未能从bililogin.bin中恢复保存的登录状态:" + err.Message);
+                                    logger("Bililogin", err.StackTrace);
                                 }
                             }
                             bililogin = new BiliApi.Auth.QRLogin();
@@ -150,11 +151,11 @@ namespace tech.msgp.groupmanager.Code
                             });
                             bililogin.Login();
                             broadcaster.BroadcastToAdminGroup("已获取必要的授权，将释放被挂起的模块。");
-                            if (File.Exists("bili_login_info.json")) File.Delete("bili_login_info.json");
+                            if (File.Exists("saves/bili_login_info.json")) File.Delete("saves/bili_login_info.json");
                             try
                             {
-                                var js = JsonConvert.SerializeObject(bililogin, Formatting.None);
-                                File.WriteAllText("bili_login_info.json", js);
+                                var js = bililogin.Serilize();
+                                File.WriteAllText("saves/bili_login_info.json", js);
                             }
                             catch (Exception err)
                             {

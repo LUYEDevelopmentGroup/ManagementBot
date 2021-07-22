@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BiliApi.BiliPrivMessage;
@@ -18,7 +19,7 @@ namespace tech.msgp.groupmanager.Code
         }
         public static void run()
         {
-            run_head:
+        run_head:
             try
             {
                 man.fetchUnfollowed();
@@ -31,6 +32,12 @@ namespace tech.msgp.groupmanager.Code
                     }
                     catch { }
                 }
+                int lateststamp = -1;
+                if (File.Exists("saves/timestamp.int"))
+                {
+                   bool succ = int.TryParse(File.ReadAllText("saves/timestamp.int"), out int tstamp);
+                    if (succ) lateststamp = tstamp;
+                }
                 while (true)
                 {
                     try
@@ -42,6 +49,9 @@ namespace tech.msgp.groupmanager.Code
                             {
                                 //session.fetch();//Sessions会被自动更新，不再需要手动更新
                                 List<PrivMessage> messages = session.pick_latest_messages();
+                                if (lateststamp > session.lastmessage.timestamp) continue;//会话最后一条消息在上一次处理之前就已经发送，很可能处理过了
+                                lateststamp = session.lastmessage.timestamp;
+                                File.WriteAllText("saves/timestamp.int", lateststamp.ToString());
                                 foreach (PrivMessage pm in messages)
                                 {
                                     if (pm.content == null || pm.content.Length < 1)
@@ -74,7 +84,7 @@ namespace tech.msgp.groupmanager.Code
                                         else
                                         {
                                             MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "试图重新绑定QQ  已被拒绝");
-                                            session.sendMessage("[自动回复] 好的，管理将在稍后尝试与您取得联系。您也可以尝试使用下面的链接自助入群：https://jq.qq.com/?_wv=1027&k=3WZDODeC");
+                                            //session.sendMessage("[自动回复] 好的，管理将在稍后尝试与您取得联系。您也可以尝试使用下面的链接自助入群：https://jq.qq.com/?_wv=1027&k=3WZDODeC");
                                         }
                                     }
                                     else

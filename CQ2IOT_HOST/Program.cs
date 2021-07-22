@@ -26,16 +26,22 @@ namespace CQ2IOT_HOST
         private static string keyword = "";
         private static pThreadPool pool;
         private static string authenti;
+        public static bool DEBUGMODE = false;
 
         private static void Main(string[] args)
         {
+#if DEBUG
+logger("DEBUG", "WARNING: Running in debug mode.");
+DEBUGMODE=true;
+Thread.Sleep(5000);
+#endif
             DateTime start = DateTime.Now;
             string ipv4_ip = "";//NetworkInfo.GetLocalIpAddress();
             MainHolder.logger = logger;
             bool booted = false;
             Exception exc = null;
 
-            #region 读取配置
+#region 读取配置
             StreamReader cfile = new StreamReader("config.json");
             JObject config = (JObject)JsonConvert.DeserializeObject(cfile.ReadToEnd());
             cfile.Close();
@@ -65,7 +71,7 @@ namespace CQ2IOT_HOST
                 logger("MainThread", "Running on the same server! Using 127.0.0.1 to connect mirai.");
                 host = "127.0.0.1";
             }
-            #endregion
+#endregion
 
             while (true)//故障自动重启
             {
@@ -140,6 +146,7 @@ namespace CQ2IOT_HOST
                     logger("MainThread", "Stand by.  The bot is up and ready to go. Type to set an log filter.", ConsoleColor.Black, ConsoleColor.Green);
 #if RELEASE
                     MainHolder.broadcaster.BroadcastToAdminGroup("[启动报告]\n" +
+                        (DEBUGMODE?"⚠当前处于调试模式，不适合长期运行⚠\n":"") +
                         "当前版本：" + codeName + version + "\n" +
                         "启用耗时：" + (DateTime.Now - start).TotalSeconds + "s\n" +
                         "当前授权：" + authenti + "\n" +

@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BroadTicketUtility", "Broad
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EncryptLib", "EncryptLib\EncryptLib.csproj", "{AB44B70E-218B-4EC3-98DA-6F699E809ED9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandalonePaymentRecorder", "StandalonePaymentRecorder\StandalonePaymentRecorder.csproj", "{7357C39D-EDA6-4A59-8E01-4B1301D36006}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +118,18 @@ Global
 		{AB44B70E-218B-4EC3-98DA-6F699E809ED9}.Release|x64.Build.0 = Release|Any CPU
 		{AB44B70E-218B-4EC3-98DA-6F699E809ED9}.Release|x86.ActiveCfg = Release|Any CPU
 		{AB44B70E-218B-4EC3-98DA-6F699E809ED9}.Release|x86.Build.0 = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|x64.Build.0 = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Debug|x86.Build.0 = Debug|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|x64.ActiveCfg = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|x64.Build.0 = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|x86.ActiveCfg = Release|Any CPU
+		{7357C39D-EDA6-4A59-8E01-4B1301D36006}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
