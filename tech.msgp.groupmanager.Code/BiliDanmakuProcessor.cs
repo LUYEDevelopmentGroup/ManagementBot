@@ -69,8 +69,8 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        //private const bool DO_PUSH_LIVE = true;
-        private const bool DO_PUSH_LIVE = false;
+        private const bool DO_PUSH_LIVE = true;
+        //private const bool DO_PUSH_LIVE = false;
 
         public void StreamStarted(object sender, StreamStartedArgs e)
         {
@@ -94,7 +94,7 @@ namespace tech.msgp.groupmanager.Code
             if (DO_PUSH_LIVE)
             {
                 MainHolder.broadcaster.BroadcastToAllGroup(new IMessageBase[] {
-                new PlainMessage("【直播通知】\n" + blr.title + "\nhttp://xn--z6ut02b.xn--8nx142eqwi.xn--6qq986b3xl/" + new Random().Next(100,99999)),
+                new PlainMessage("【直播通知】\n" + blr.title + "\nhttps://live.bilibili.com/2064239?rnd=" + new Random().Next(100,99999)),
                 new ImageMessage(null,blr.cover,null),
                 atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>") });
                 if (MainHolder.useBiliRecFuncs) blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");

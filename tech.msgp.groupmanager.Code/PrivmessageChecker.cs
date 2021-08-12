@@ -52,8 +52,9 @@ namespace tech.msgp.groupmanager.Code
                                 if (lateststamp > session.lastmessage.timestamp) continue;//会话最后一条消息在上一次处理之前就已经发送，很可能处理过了
                                 lateststamp = session.lastmessage.timestamp;
                                 File.WriteAllText("saves/timestamp.int", lateststamp.ToString());
-                                foreach (PrivMessage pm in messages)
+                                //foreach (PrivMessage pm in messages)
                                 {
+                                    var pm = session.lastmessage;
                                     if (pm.content == null || pm.content.Length < 1)
                                     {
                                         continue;//假私信
@@ -102,12 +103,12 @@ namespace tech.msgp.groupmanager.Code
                                 }
                             }
                         }
+                        WatchDog.FeedDog("pmsgchk");
                     }
                     catch (Exception err)
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[B站私信部分_外循环]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace + "\n-= Func Failure =-");
-                    }
-                    Thread.Sleep(2 * 60 * 1000);
+                    }                    Thread.Sleep(2 * 60 * 1000);
                 }
             }
             catch (Exception err)

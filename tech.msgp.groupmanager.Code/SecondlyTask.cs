@@ -71,7 +71,7 @@ namespace tech.msgp.groupmanager.Code
                     {
                         counter = 0;//以一天为循环体
                     }
-
+                    WatchDog.FeedDog("sckt");
                     MainHolder.bilidmkproc?.UpdateLiveDataToDB();//每秒都更新数据库
                 }
                 catch (Exception err)

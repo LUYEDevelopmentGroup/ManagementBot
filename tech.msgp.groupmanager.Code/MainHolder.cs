@@ -109,6 +109,19 @@ namespace tech.msgp.groupmanager.Code
                 }
             }
 
+            //更新成员列表
+            pool.submitWorkload(new pThreadPool.workload(() =>
+            {
+                MainHolder.logger("Database", "Updating member info...");
+                var glist = DataBase.me.listGroup();
+                foreach (var g in glist)
+                {
+                    MainHolder.logger("Database", "Updating members for " + g);
+                    DataBase.me.update_groupmembers(g);
+                }
+                MainHolder.logger("Database", "Updating member info Done");
+            }));
+
             //B站登录、加载相关模块
             pool.submitWorkload(new pThreadPool.workload(() =>
             {
@@ -222,7 +235,7 @@ namespace tech.msgp.groupmanager.Code
                 {
                     //不处理错误
                 }
-                return;
+                //return;
                 try
                 {
                     DynChecker.startthreads();

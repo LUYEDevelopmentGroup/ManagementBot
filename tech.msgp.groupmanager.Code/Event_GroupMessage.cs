@@ -56,6 +56,7 @@ namespace tech.msgp.groupmanager.Code
         {
             try
             {
+                WatchDog.FeedDog("grpmsg");
                 pThreadPool pool = MainHolder.pool;
                 //MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");
                 MainHolder.MsgCount++;

@@ -12,7 +12,6 @@ namespace tech.msgp.groupmanager.Code
     {
         public static List<int> listened_uids = new List<int>();
         public static Thread main;
-        public static int gbcounter = 57600;
         //public static List<long> sent = new List<long>();
         public static void startthreads()
         {
@@ -38,19 +37,6 @@ namespace tech.msgp.groupmanager.Code
             }
             while (true)
             {
-                if (gbcounter >= 5760)
-                {
-                    gbcounter = 0;
-                    new Thread(new ThreadStart(() =>
-                    {
-                        /*
-                        MainHolder.bilidmkproc.if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("#签到");
-                        Thread.Sleep(2000);
-                        MainHolder.bilidmkproc.if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("#查询");
-                        */
-                    })).Start();
-                    gbcounter++;
-                }
                 foreach (BiliApi.BiliSpaceDynamic dyn in MainHolder.dynamics)
                 {
                     try
