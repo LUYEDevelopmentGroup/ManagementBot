@@ -41,7 +41,7 @@ Thread.Sleep(5000);
             bool booted = false;
             Exception exc = null;
 
-#region 读取配置
+            #region 读取配置
             StreamReader cfile = new StreamReader("config.json");
             JObject config = (JObject)JsonConvert.DeserializeObject(cfile.ReadToEnd());
             cfile.Close();
@@ -71,7 +71,7 @@ Thread.Sleep(5000);
                 logger("MainThread", "Running on the same server! Using 127.0.0.1 to connect mirai.");
                 host = "127.0.0.1";
             }
-#endregion
+            #endregion
 
             while (true)//故障自动重启
             {
@@ -146,7 +146,7 @@ Thread.Sleep(5000);
                     logger("MainThread", "Stand by.  The bot is up and ready to go. Type to set an log filter.", ConsoleColor.Black, ConsoleColor.Green);
 #if RELEASE
                     MainHolder.broadcaster.BroadcastToAdminGroup("[启动报告]\n" +
-                        (DEBUGMODE?"⚠当前处于调试模式，不适合长期运行⚠\n":"") +
+                        (DEBUGMODE ? "⚠当前处于调试模式，不适合长期运行⚠\n" : "") +
                         "当前版本：" + codeName + version + "\n" +
                         "启用耗时：" + (DateTime.Now - start).TotalSeconds + "s\n" +
                         "当前授权：" + authenti + "\n" +
@@ -229,7 +229,8 @@ Thread.Sleep(5000);
                     logger("Connection", "Reconnecting...");
                     MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, key);
                     await sender.ConnectAsync(options, me_qq);
-                    MainHolder.broadcaster.BroadcastToAdminGroup("[断线重连]\n诊断报告：" + e.Message + "\n" + e.StackTrace);
+                    if (!e.Message.Contains("未知的消息类型"))
+                        MainHolder.broadcaster.BroadcastToAdminGroup("[断线重连]\n诊断报告：" + e.Message + "\n" + e.StackTrace);
                     break;
                 }
                 catch (Exception err)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +11,11 @@ namespace tech.msgp.groupmanager.Code
     internal class PrivmessageChecker
     {
         public static PrivSessionManager man;
+        private static Bitmap QunQRCode;
         //public static List<long> sent = new List<long>();
         public static void startthreads()
         {
+            QunQRCode = (Bitmap)Image.FromFile("quncode.png");
             if (!MainHolder.useBiliRecFuncs) return;
             man = new PrivSessionManager(MainHolder.biliapi);
             MainHolder.pool.submitWorkload(run);
@@ -42,19 +45,20 @@ namespace tech.msgp.groupmanager.Code
                 {
                     try
                     {
-                        man.smartRefresh();
+                        man.updateSessions();
+                        Thread.Sleep(1000);
+                        man.refresh();
                         foreach (PrivMessageSession session in man.unfollowed_sessions)
                         {
                             try
                             {
-                                //session.fetch();//Sessions会被自动更新，不再需要手动更新
+                                session.fetch();//Sessions会被自动更新，不再需要手动更新 EDIT:划掉
                                 List<PrivMessage> messages = session.pick_latest_messages();
-                                if (lateststamp > session.lastmessage.timestamp) continue;//会话最后一条消息在上一次处理之前就已经发送，很可能处理过了
-                                lateststamp = session.lastmessage.timestamp;
+                                if (lateststamp >= session.lastmessage.timestamp) continue;//会话最后一条消息在上一次处理之前就已经发送，很可能处理过了
                                 File.WriteAllText("saves/timestamp.int", lateststamp.ToString());
-                                //foreach (PrivMessage pm in messages)
+                                foreach (PrivMessage pm in messages)
                                 {
-                                    var pm = session.lastmessage;
+                                    //var pm = session.lastmessage;
                                     if (pm.content == null || pm.content.Length < 1)
                                     {
                                         continue;//假私信
@@ -62,6 +66,8 @@ namespace tech.msgp.groupmanager.Code
 
                                     if (pm.talker.uid == man.MyUID) continue;//自己的消息不处理
 
+                                    if (pm.timestamp <= lateststamp) continue;//老消息
+                                    
                                     MainHolder.Logger.Info("B站私信", pm.content);
                                     MainHolder.broadcaster.BroadcastToAdminGroup("私信.[" + pm.talker.name + "#" + pm.talker.uid + "]:" + pm.content);
                                     Task.Delay(1000).Wait();
@@ -74,7 +80,9 @@ namespace tech.msgp.groupmanager.Code
                                             {
                                                 MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 绑定了TA的QQ号:" + qq);
                                                 //PrivMessageSession privsession = PrivMessageSession.openSessionWith(pm.talker.uid, MainHolder.biliapi);
-                                                session.sendMessage("[自动回复] 好的，管理将在稍后尝试与您取得联系。您也可以尝试使用下面的链接自助入群：https://jq.qq.com/?_wv=1027&k=3WZDODeC");
+                                                session.sendMessage("[自动回复] 好的，管理将在稍后尝试与您取得联系。您也可以使用二维码入群。(转发无效)");
+                                                session.SendImage(QunQRCode);
+
                                             }
                                             else
                                             {
@@ -93,6 +101,7 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.broadcaster.SendToAnEgg("私信.[" + pm.talker.name + "#" + pm.talker.uid + "]:" + pm.content);
                                     }
                                 }
+                                session.Close();
                             }
                             catch (Exception err)
                             {
@@ -103,12 +112,14 @@ namespace tech.msgp.groupmanager.Code
                                 }
                             }
                         }
+                        lateststamp = BiliApi.TimestampHandler.GetTimeStamp(DateTime.Now);
                         WatchDog.FeedDog("pmsgchk");
                     }
                     catch (Exception err)
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[B站私信部分_外循环]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace + "\n-= Func Failure =-");
-                    }                    Thread.Sleep(2 * 60 * 1000);
+                    }     
+                    Thread.Sleep(30 * 1000);
                 }
             }
             catch (Exception err)

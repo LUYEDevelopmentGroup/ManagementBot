@@ -217,7 +217,7 @@ namespace tech.msgp.groupmanager.Code
                                 break;
                             case "Image":
                                 {
-                                    try
+                                    /*try
                                     {
                                         ImageMessage message = (ImageMessage)msg;
                                         Ticket t = TicketCoder.Decode(new Bitmap(PicLoader.loadPictureFromURL(message.Url)));
@@ -247,6 +247,7 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该船票签名无效");
                                     }
                                     catch { }
+                                    */
                                 }
                                 break;
                             default:

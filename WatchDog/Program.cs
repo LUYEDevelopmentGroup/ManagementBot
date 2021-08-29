@@ -15,7 +15,7 @@ namespace WatchDog
     {
         static Socket server;
         static int t1 = 0, t2 = 0, t3 = 0;
-        static int th1 = 4 * 60, th2 = 4, th3 = 60 * 60 * 5;
+        static int th1 = 4 * 60, th2 = 8, th3 = 60 * 60 * 5;
 
         static MiraiHttpSession session;
         static string host, key;

@@ -69,7 +69,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        private const bool DO_PUSH_LIVE = true;
+        private const bool DO_PUSH_LIVE = false;
         //private const bool DO_PUSH_LIVE = false;
 
         public void StreamStarted(object sender, StreamStartedArgs e)
