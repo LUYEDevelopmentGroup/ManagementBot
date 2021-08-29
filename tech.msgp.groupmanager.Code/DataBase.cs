@@ -865,7 +865,7 @@ namespace tech.msgp.groupmanager.Code
             group_name_cache.Clear();
         }
 
-        public List<long> whichGroupsAreTheUserIn(long user)
+        public List<long> whichGroupsAreTheUserIn(long user, bool IgnoreMEIGroups = true)
         {
             Dictionary<string, string> args = new Dictionary<string, string>
             {
@@ -880,7 +880,7 @@ namespace tech.msgp.groupmanager.Code
             foreach (List<string> line in re)
             {
                 long gpn = long.Parse(line[0]);
-                if ((!group.Contains(gpn)) && (!isMEIgnoreGroup(gpn)))
+                if ((!group.Contains(gpn)) && ((!isMEIgnoreGroup(gpn)) || !IgnoreMEIGroups))
                 {
                     group.Add(gpn);
                 }
@@ -1613,7 +1613,7 @@ namespace tech.msgp.groupmanager.Code
 
         private Dictionary<long, double> opweightmp = new Dictionary<long, double>();
 
-        public double getOPWeigh(long qq,bool cache=true)
+        public double getOPWeigh(long qq, bool cache = true)
         {
             Dictionary<string, string> args = new Dictionary<string, string>
             {
@@ -1673,7 +1673,7 @@ namespace tech.msgp.groupmanager.Code
             };
             List<List<string>> re = querysql("SELECT * from qq_warns where qq = @qq;", args, vs);
             double sum = 0;
-            foreach(List<string> line in re)
+            foreach (List<string> line in re)
             {
                 sum += double.Parse(line[1]) * getOPWeigh(long.Parse(line[0])) * MainHolder.GLOBAL_WARN_WEIGHT;
             }

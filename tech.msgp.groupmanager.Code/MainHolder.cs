@@ -34,7 +34,7 @@ namespace tech.msgp.groupmanager.Code
         public static MiraiHttpSession session;
         public static BiliApi.Auth.QRLogin bililogin;
         public static BiliApi.ThirdPartAPIs biliapi;
-        public static bool doBiliLogin = true;
+        public static bool doBiliLogin = false;
 
         /// <summary>
         /// 推送动态的B站UID列表
@@ -270,7 +270,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.logger("SideLoad", "Broadcaster FAILED.", ConsoleColor.Black, ConsoleColor.Red);
             }
-
+            doBiliLogin = true;
             try
             {
                 tms = new TCPMessageServer(15510);

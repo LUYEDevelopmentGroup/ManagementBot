@@ -21,7 +21,7 @@ namespace tech.msgp.groupmanager.Code
             MainHolder.pool.submitWorkload(run);
         }
 
-        public static bool Collides(List<long> a, List<long> b,out List<long> collition)
+        public static bool Collides(List<long> a, List<long> b, out List<long> collition)
         {
             collition = new List<long>();
             foreach (var i in a)
@@ -31,7 +31,7 @@ namespace tech.msgp.groupmanager.Code
                     collition.Add(i);
                 }
             }
-            return collition.Count>0;
+            return collition.Count > 0;
         }
         public static void run()
         {
@@ -96,11 +96,11 @@ namespace tech.msgp.groupmanager.Code
                                             }
                                             var cgroups = DataBase.me.getCrewGroup();
                                             var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
-                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq);
+                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq, false);
                                             if (Collides(cgroups, usergroup, out List<long> cgin))
                                             {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "\n用户强制换绑QQ。\n将从舰长群踢出"+oldqq+"，然后将新账号"+fq+"录入数据库");
-                                                foreach(var g in cgin)
+                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "\n用户强制换绑QQ。\n将从舰长群踢出" + oldqq + "，然后将新账号" + fq + "录入数据库");
+                                                foreach (var g in cgin)
                                                 {
                                                     MainHolder.session.KickMemberAsync(oldqq, g, "您通过B站私信绑定了新的舰长QQ。");
                                                 }
@@ -148,13 +148,13 @@ namespace tech.msgp.groupmanager.Code
                                         {
                                             var cgroups = DataBase.me.getCrewGroup();
                                             var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
-                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq);
-                                            if (Collides(cgroups, usergroup,out List<long> _))
+                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq, false);
+                                            if (Collides(cgroups, usergroup, out List<long> _))
                                             {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ("+oldqq+"=>"+qq+")\n拒绝，因为原QQ已经在舰长群中");
-                                                session.sendMessage("[自动回复] 您不能换绑QQ，因为您原先绑定的QQ("+ oldqq + ")已经在舰长群中了。如果需要换绑QQ，请先将原QQ退出舰长群。\n" +
+                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n拒绝，因为原QQ已经在舰长群中");
+                                                session.sendMessage("[自动回复] 您不能换绑QQ，因为您原先绑定的QQ(" + oldqq + ")已经在舰长群中了。如果需要换绑QQ，请先将原QQ退出舰长群。\n" +
                                                     "如果强行换绑，系统将会踢出原先的QQ。需强行换绑请发送：\n" +
-                                                    "F"+qq);
+                                                    "F" + qq);
                                             }
                                             else
                                             {
