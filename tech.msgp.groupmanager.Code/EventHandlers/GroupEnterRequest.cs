@@ -34,15 +34,25 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             }
             if (DataBase.me.isCrewGroup(e.FromGroup))
             {//是舰长群
+                CrewChecker cr = new CrewChecker();
                 if (DataBase.me.isUserBoundedUID(e.FromQQ))//舰长绑定
                 {
-                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
-                    MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n是舰长，同意");
+                    var uid = DataBase.me.getUserBoundedUID(e.FromQQ);
+                    if (DataBase.me.isBiliUserGuard(uid))
+                    {
+                        await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
+                        MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n是舰长，同意");
+                    }
+                    else
+                    {
+                        await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "没有您的大航海数据，如有疑问请联系管理。");
+                        MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n不是舰长，拒绝");
+                    }
                 }
                 else
                 {
-                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您没有大航海数据，如有疑问请联系管理入群。");
-                    MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n无记录，拒绝");
+                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您的QQ没有绑定任何UID，如有疑问请联系管理。");
+                    MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n未知QQ，拒绝");
                 }
             }
             else

@@ -598,12 +598,12 @@ namespace tech.msgp.groupmanager.Code
             return re[0][0];
         }
 
-        public bool isBiliUserGuard(int uid)
+        public bool isBiliUserGuard(long uid)
         {
             return getBiliUserGuardCount(uid) > 0;
         }
 
-        public int getBiliUserGuardCount(int uid)
+        public int getBiliUserGuardCount(long uid)
         {
 
             Dictionary<string, string> args = new Dictionary<string, string>
@@ -929,7 +929,7 @@ namespace tech.msgp.groupmanager.Code
                     { "@uid", uid.ToString() },
                     { "@qq", qq.ToString() }
                 };
-                execsql("UPDATE bili_qqbound SET qq = @qq WHERE uid = @uid and qq is null;", args, out int a);
+                execsql("UPDATE bili_qqbound SET qq = @qq WHERE uid = @uid;", args, out int a);
                 return (a > 0);
             }
             catch (Exception e)
