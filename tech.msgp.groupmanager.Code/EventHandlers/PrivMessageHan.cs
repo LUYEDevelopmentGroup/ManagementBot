@@ -30,6 +30,7 @@ namespace tech.msgp.groupmanager.Code
         {
             try
             {
+                /*
                 if (msgtext.IndexOf("#") != 0)
                 {
                     try
@@ -64,7 +65,7 @@ namespace tech.msgp.groupmanager.Code
                     catch { }
                     MainHolder.broadcaster.SendToAnEgg(msgtext);
                 }
-                else
+                else*/
                 {//是一条指令
                     try
                     {
@@ -464,41 +465,31 @@ namespace tech.msgp.groupmanager.Code
                                 case "#披风":
                                     {
                                         long qq = -1;
+                                        string url = "";
                                         if (cmd.Length < 3)
                                         {
                                             if (!long.TryParse(cmd[1], out qq))
                                             {
                                                 rep.reply("！正在操作您自己的账号");
                                                 qq = rep.qq;
+                                                url = cmd[1];
                                             }
                                             else
-                                            if (cmd.Length < 2)
                                             {
-                                                rep.reply("用法：\n" + cmd[0] + " (玩家QQ) 【图片】");
-                                                break;
+                                                if (cmd.Length < 2)
+                                                {
+                                                    rep.reply("用法：\n" + cmd[0] + " (玩家QQ) 图片URL");
+                                                    break;
+                                                }
+                                                url = cmd[2];
                                             }
                                         }
                                         if (qq < 0) qq = long.Parse(cmd[1]);
-                                        /*
-                                        string fName = e.Message.ReceiveImage(0);
-                                        fName = e.CQApi.ReceiveImage(fName);
-                                        if (!MCServer.SkinHandler.checkPick(fName))
+                                        if (!MCServer.SkinHandler.checkPick(url))
                                         {
-                                            e.FromQQ.SendPrivateMessage("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
+                                            rep.reply("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
                                             break;
                                         }
-                                        string hash = MCServer.SkinHandler.getPictureHash(fName);
-                                        string savepath = "Y:/skin/CAPE/" + hash + ".png";
-                                        e.CQLog.Info("MC皮肤", "图片存储到" + "Y:/skin/CAPE" + hash + ".png");
-                                        if (!Directory.Exists("Y:/skin/CAPE"))
-                                        {
-                                            e.CQLog.Warning("MC皮肤", "转储目录无效");
-                                        }
-                                        if (!File.Exists(savepath))
-                                        {
-                                            e.CQLog.Warning("MC皮肤", "文件已存在");
-                                        }
-                                        SkinHandler.turnPicture(fName, savepath);
                                         string uuid = DBHandler.me.getUserOwnedProfileUUID(qq);
                                         string pname = DBHandler.me.getUserOwnedProfileName(qq);
                                         string oldtdata = DBHandler.me.getProfileUUIDTexture(uuid);
@@ -515,18 +506,17 @@ namespace tech.msgp.groupmanager.Code
                                             }
                                         }
                                         Dictionary<string, string> d = new Dictionary<string, string>();
-                                        Texture t = new Texture("http://textures.mc.microstorm.tech:15551/CAPE/" + hash, "CAPE", d);
+                                        Texture t = new Texture(url, "CAPE", d);
                                         l.Add(t);
                                         SkinHandler sh = new SkinHandler(DBHandler.me.getUserOwnedProfileUUID(rep.qq), DBHandler.me.getUserOwnedProfileName(rep.qq), l);
                                         if (DBHandler.me.setProfileUUIDTexture(uuid, sh.ToString()))
                                         {
-                                            e.FromQQ.SendPrivateMessage("操作成功，已为玩家" + pname + "设置披风。\n" + "http://textures.mc.microstorm.tech:15551/CAPE/" + hash);
+                                            rep.reply("操作成功，已为玩家" + pname + "设置披风。\n" + url);
                                         }
                                         else
                                         {
-                                            e.FromQQ.SendPrivateMessage("操作失败");
+                                            rep.reply("操作失败");
                                         }
-                                        */
                                     }
                                     break;
                                 default:
@@ -554,7 +544,7 @@ namespace tech.msgp.groupmanager.Code
                 rep.reply("用法：\n" + cmd[0] + " https://xxxx.xxxx.xxxx/xxxx.png");
                 return;
             }
-            if (!MCServer.SkinHandler.checkPick(cmd[0]))
+            if (!MCServer.SkinHandler.checkPick(cmd[1]))
             {
                 rep.reply("图片格式有误。必须是有效PNG图片，且为64*32或64*64比例。");
                 return;
