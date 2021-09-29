@@ -37,7 +37,7 @@ namespace tech.msgp.groupmanager.Code
         }
         public void Init_connection()
         {
-            lr = new LiveRoom(liveid,cookiestr);
+            lr = new LiveRoom(liveid, cookiestr);
             lr.sm.ReceivedDanmaku += Receiver_ReceivedDanmaku;
             lr.sm.StreamStarted += StreamStarted;
             lr.sm.ExceptionHappened += Sm_ExceptionHappened; ;
@@ -67,6 +67,12 @@ namespace tech.msgp.groupmanager.Code
                 if (MainHolder.useBiliRecFuncs) blr.sendDanmaku("直播频繁断开,可能不稳定");
                 failtimes = 0;
             }
+        }
+
+        private string doMark(int uid, int timestamp)
+        {
+            int timeline = timestamp - lid;
+            return DataBase.me.recLiveMark(uid, lid, timeline);
         }
 
         private const bool DO_PUSH_LIVE = false;
@@ -197,6 +203,22 @@ namespace tech.msgp.groupmanager.Code
                                     tlist.Add(e.Danmaku.UserName, ml);
                                 }
                             }
+                            {
+                                int mainsite_level = GetUserMainSiteLevel(json);
+                                var uid = GetUserUID(json);
+                                if (ml < 1//粉丝牌子小于1级
+                                && mainsite_level < 1//主站等级小于一级
+                                )
+                                {
+                                    blr.manage.banUID(uid);
+                                    Log(ConsoleColor.White, uid + "被直播间自动封禁");
+                                    var user = BiliUser.getUser(uid, MainHolder.biliapi);
+                                    MainHolder.broadcaster.BroadcastToAdminGroup(user.name + "#" + user.uid + "\n直播间中被自动封禁：\n" +
+                                        ((ml < 1) ? "牌子等级：" + ml + "<1\n" : "") +
+                                        ((ml < 1) ? "主站等级：" + mainsite_level + "<1\n" : "")
+                                        );
+                                }
+                            }
                             DataBase.me.recBLiveDanmaku(e.Danmaku.UserID, e.Danmaku.CommentText, TimestampHandler.GetTimeStamp(DateTime.Now), lid);
                             if (!DataBase.me.isBiliUserExist(e.Danmaku.UserID))
                             {
@@ -218,6 +240,12 @@ namespace tech.msgp.groupmanager.Code
                                         MainHolder.broadcaster.BroadcastToAdminGroup("直播间检测到疑似违规弹幕：\n" + e.Danmaku.CommentText + "\n发送者：" + e.Danmaku.UserName + "(" + e.Danmaku.UserID + ")");
                                     }
                                 }
+                            }
+
+                            if (e.Danmaku.CommentText.ToUpper() == "MARK")
+                            {
+                                string id = doMark(e.Danmaku.UserID, TimestampHandler.GetTimeStamp(DateTime.Now));
+                                MainHolder.broadcaster.BroadcastToAdminGroup("放置了一个标记\n" + e.Danmaku.UserName + "#"+e.Danmaku.UserID+"\n标记点ID:"+id);
                             }
                             break;
                         case MsgTypeEnum.GuardBuy:
@@ -370,6 +398,18 @@ namespace tech.msgp.groupmanager.Code
             {
                 return -1;
             }
+        }
+
+        public static int GetUserUID(JObject json)
+        {
+            return json["info"][2].Value<int>(0);
+        }
+
+        public static int GetUserMainSiteLevel(JObject json)
+        {
+            var uid = GetUserUID(json);
+            var user = BiliUser.getUser(uid, MainHolder.biliapi);
+            return user.level;
         }
 
         public static bool SendKeyToCrewMember(int uid, int length, int crewlevel, int timestamp, string clevel, bool isnew)

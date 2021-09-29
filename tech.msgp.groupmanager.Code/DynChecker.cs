@@ -41,7 +41,17 @@ namespace tech.msgp.groupmanager.Code
                 {
                     try
                     {
-                        List<Dyncard> d = dyn.getLatest();
+                        List<Dyncard> d = new List<Dyncard>();
+                        try
+                        {
+                            d = dyn.getLatest();
+                        }
+                        catch(Exception err)
+                        {
+                            MainHolder.Logger.Warning("DynChecker", err.Message);
+                            MainHolder.Logger.Warning("DynChecker", err.StackTrace);
+                            continue;
+                        }
                         Thread.Sleep(0);
                         dyn.refresh(d);
                         foreach (Dyncard dc in d)

@@ -1759,6 +1759,21 @@ namespace tech.msgp.groupmanager.Code
             }
             return group;
         }
+
+        public string recLiveMark(int uid, int lid, int timeline)
+        {
+            string uuid = Guid.NewGuid().ToString();
+            Dictionary<string, string> args = new Dictionary<string, string>
+            {
+                { "@uid", uid.ToString() },
+                { "@pointid", uuid },
+                { "@lid", lid.ToString() },
+                { "@timeline", timeline.ToString() },
+                { "@pointtime", (timeline/60).ToString() },
+            };
+            execsql("INSERT INTO bili_livemarks (uid, pointid, lid, timeline, pointtime) VALUES (@uid, @pointid, @lid, @timeline, pointtime);", args);
+            return uuid;
+        }
         #endregion
     }
     public class Warn
