@@ -34,7 +34,28 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
+        public static string _get_gzip(string url)
+        {
+            try
+            {
+                string retString = string.Empty;
 
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.ContentType = "application/json";
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream stm = new System.IO.Compression.GZipStream(response.GetResponseStream(), System.IO.Compression.CompressionMode.Decompress);
+                StreamReader streamReader = new StreamReader(stm);
+                retString = streamReader.ReadToEnd();
+                streamReader.Close();
+                stm.Close();
+                return retString;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
 
         public static string _Jget(string url)
         {
@@ -102,6 +123,21 @@ namespace tech.msgp.groupmanager.Code
 
         public static int getQQLevel(long qq, int retry = 0)
         {
+            int level = DataBase.me.getQQLevelTemp(qq);
+            if (level >= 0) return level;
+            retry++;
+            for (; retry > 0; retry--)
+            {
+                var data = _get_gzip("http://check.uomg.com/api/qq/qlevel?token=4c78dff53217b19f6c8e8c6628f9e6d6&qq=" + qq);
+                JObject jb1 = (JObject)JsonConvert.DeserializeObject(data);
+                var code = jb1.Value<int>("code");
+                if (code == 200)
+                {
+                    level = jb1["data"].Value<int>("level");
+                    DataBase.me.setQQLevelTemp(qq, level);
+                    return level;
+                }
+            }
             return -1;
             /*
             try

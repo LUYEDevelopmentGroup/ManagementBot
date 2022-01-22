@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using Mirai_CSharp.Plugin.Interfaces;
+using Mirai.CSharp;
+using Mirai.CSharp.Models;
+using Mirai.CSharp.Plugin.Interfaces;
 
 namespace tech.msgp.groupmanager.Code.EventHandlers
 {
@@ -12,6 +12,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
     {
         public async Task<bool> GroupMemberKicked(MiraiHttpSession session, IGroupMemberKickedEventArgs e)
         {
+            if (!DataBase.me.IsGroupRelated(e.Member.Group.Id)) return true;
             string name = e.Member.Name;
             long qq = e.Member.Id;
             long gid = e.Member.Group.Id;
@@ -20,7 +21,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             string opname = DataBase.me.getAdminName(opid);
             try
             {
-                MainHolder.broadcaster.BroadcastToAdminGroup(new IMessageBase[]{ 
+                MainHolder.broadcaster.BroadcastToAdminGroup(new IChatMessage[]{ 
                     new PlainMessage(name + "被" + opname + "踢出了" + DataBase.me.getGroupName(gid) + "\n已自动拉黑该用户"),
                     new AtMessage(opid)
                 });
@@ -37,6 +38,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
 
         public async Task<bool> GroupMemberPositiveLeave(MiraiHttpSession session, IGroupMemberPositiveLeaveEventArgs e)
         {
+            if (!DataBase.me.IsGroupRelated(e.Member.Group.Id)) return true;
             string name = e.Member.Name;
             long qq = e.Member.Id;
             long gid = e.Member.Group.Id;

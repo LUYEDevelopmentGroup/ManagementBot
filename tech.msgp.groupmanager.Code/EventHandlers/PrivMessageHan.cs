@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Mirai_CSharp.Plugin.Interfaces;
+using Mirai.CSharp.Models;
+using Mirai.CSharp.Models.ChatMessages;
 using tech.msgp.groupmanager.Code.MCServer;
 using static tech.msgp.groupmanager.Code.DataBase;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
+using Mirai.CSharp;
+using Mirai.CSharp.Models;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -621,11 +622,11 @@ namespace tech.msgp.groupmanager.Code
             return true;
         }
 
-        public void ProcessMessage(MsgReply rply, IMessageBase[] chain)
+        public void ProcessMessage(MsgReply rply, IChatMessage[] chain)
         {
             StringBuilder str = new StringBuilder();
             List<string> pic = new List<string>();
-            foreach (IMessageBase msg in chain)
+            foreach (IChatMessage msg in chain)
             {
                 switch (msg.Type)
                 {
@@ -649,7 +650,7 @@ namespace tech.msgp.groupmanager.Code
         {
             public long qq;
             public abstract void reply(string msg);
-            public abstract void reply(IMessageBase[] chain);
+            public abstract void reply(IChatMessage[] chain);
             public abstract void reply(Bitmap image);
         }
         public class MsgReplyTemp : MsgReply
@@ -659,7 +660,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.broadcaster.SendToQQ(qq, msg, fromGroup);
             }
-            public override void reply(IMessageBase[] chain)
+            public override void reply(IChatMessage[] chain)
             {
                 MainHolder.broadcaster.SendToQQ(qq, chain, fromGroup);
             }
@@ -670,7 +671,7 @@ namespace tech.msgp.groupmanager.Code
                 image.Save(ms, ImageFormat.Png);
                 ms.Seek(0, SeekOrigin.Begin);
                 var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
-                MainHolder.broadcaster.SendToQQ(qq, new IMessageBase[] { pmsg }, fromGroup);
+                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { pmsg }, fromGroup);
             }
         }
         public class MsgReplyFriend : MsgReply
@@ -680,7 +681,7 @@ namespace tech.msgp.groupmanager.Code
                 MainHolder.broadcaster.SendToQQ(qq, msg);
             }
 
-            public override void reply(IMessageBase[] chain)
+            public override void reply(IChatMessage[] chain)
             {
                 MainHolder.broadcaster.SendToQQ(qq, chain);
             }
@@ -691,7 +692,7 @@ namespace tech.msgp.groupmanager.Code
                 image.Save(ms, ImageFormat.Png);
                 ms.Seek(0, SeekOrigin.Begin);
                 var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
-                MainHolder.broadcaster.SendToQQ(qq, new IMessageBase[] { pmsg });
+                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { pmsg });
             }
         }
         #endregion

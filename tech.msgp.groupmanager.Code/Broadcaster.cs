@@ -1,4 +1,4 @@
-﻿using Mirai_CSharp.Models;
+﻿using Mirai.CSharp.HttpApi.Models.ChatMessages;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,7 +15,7 @@ namespace tech.msgp.groupmanager.Code
 
 
 
-        public bool BroadcastToUserGroup(IMessageBase[] message)
+        public bool BroadcastToUserGroup(IChatMessage[] message)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace tech.msgp.groupmanager.Code
             return BroadcastToUserGroup(new PlainMessage[] { new PlainMessage(message) });
         }
 
-        public bool BroadcastToAdminGroup(IMessageBase[] message)
+        public bool BroadcastToAdminGroup(IChatMessage[] message)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace tech.msgp.groupmanager.Code
             return BroadcastToAdminGroup(new PlainMessage[] { new PlainMessage(message) });
         }
 
-        public bool SendToGroup(long group, IMessageBase[] msg)
+        public bool SendToGroup(long group, IChatMessage[] msg)
         {
             MainHolder.session.SendGroupMessageAsync(group, msg).Wait();
             return true;
@@ -76,7 +76,7 @@ namespace tech.msgp.groupmanager.Code
             return SendToGroup(group, new PlainMessage[] { new PlainMessage(msg) });
         }
 
-        public bool BroadcastToAllGroup(IMessageBase[] msg)
+        public bool BroadcastToAllGroup(IChatMessage[] msg)
         {
             return BroadcastToUserGroup(msg) & BroadcastToAdminGroup(msg);
 
@@ -87,12 +87,12 @@ namespace tech.msgp.groupmanager.Code
             return BroadcastToAllGroup(new PlainMessage[] { new PlainMessage(msg) });
         }
 
-        public bool BroadcastToAllGroup(string msg, IMessageBase external)
+        public bool BroadcastToAllGroup(string msg, IChatMessage external)
         {
-            return BroadcastToAllGroup(new IMessageBase[] { new PlainMessage(msg), external });
+            return BroadcastToAllGroup(new IChatMessage[] { new PlainMessage(msg), external });
         }
 
-        public bool BroadcastToCrewGroup(IMessageBase[] message)
+        public bool BroadcastToCrewGroup(IChatMessage[] message)
         {
             List<long> groups = DataBase.me.getCrewGroup();
             bool success = true;
@@ -115,7 +115,7 @@ namespace tech.msgp.groupmanager.Code
             return SendToQQ(1250542735, new PlainMessage[] { new PlainMessage(msg) });
         }
 
-        public bool SendToQQ(long qq, IMessageBase[] message)
+        public bool SendToQQ(long qq, IChatMessage[] message)
         {
             if (MainHolder.friends.Contains(qq))
             {//好友
@@ -137,7 +137,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public bool SendToQQ(long qq, IMessageBase[] message, long tg)
+        public bool SendToQQ(long qq, IChatMessage[] message, long tg)
         {
             MainHolder.session.SendTempMessageAsync(qq, tg, message);
             return true;

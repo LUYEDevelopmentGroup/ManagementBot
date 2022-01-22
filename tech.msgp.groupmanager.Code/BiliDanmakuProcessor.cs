@@ -1,4 +1,4 @@
-﻿using Mirai_CSharp.Models;
+﻿using Mirai.CSharp.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -99,10 +99,10 @@ namespace tech.msgp.groupmanager.Code
             DataBase.me.recBLive(lid, blr.title);
             if (DO_PUSH_LIVE)
             {
-                MainHolder.broadcaster.BroadcastToAllGroup(new IMessageBase[] {
+                MainHolder.broadcaster.BroadcastToAllGroup(new IChatMessage[] {
                 new PlainMessage("【直播通知】\n" + blr.title + "\nhttps://live.bilibili.com/2064239?rnd=" + new Random().Next(100,99999)),
                 new ImageMessage(null,blr.cover,null),
-                atall ? (IMessageBase)new AtAllMessage():new PlainMessage("<@[免打扰模式]>") });
+                atall ? (IChatMessage)new AtAllMessage():new PlainMessage("<@[免打扰模式]>") });
                 if (MainHolder.useBiliRecFuncs) blr.sendDanmaku(atall ? "已推送直播通知" : "已推送直播通知(免打扰模式)");
             }
             if (!ispickedup)
@@ -244,6 +244,10 @@ namespace tech.msgp.groupmanager.Code
 
                             if (e.Danmaku.CommentText.ToUpper() == "MARK")
                             {
+                                if (lid < 0)
+                                {
+                                    blr.sendDanmaku("无法标记：不在直播");
+                                }
                                 string id = doMark(e.Danmaku.UserID, TimestampHandler.GetTimeStamp(DateTime.Now));
                                 MainHolder.broadcaster.BroadcastToAdminGroup("放置了一个标记\n" + e.Danmaku.UserName + "#"+e.Danmaku.UserID+"\n标记点ID:"+id);
                             }

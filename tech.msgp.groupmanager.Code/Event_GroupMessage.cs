@@ -1,7 +1,7 @@
 ﻿using CQ2IOT;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using Mirai_CSharp.Plugin.Interfaces;
+using Mirai.CSharp;
+using Mirai.CSharp.Models;
+using Mirai.CSharp.Plugin.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Xml;
@@ -27,7 +27,11 @@ namespace tech.msgp.groupmanager.Code
 
             string dt = "[视频分享]\n群:" + e.Sender.Group.Name + "\n人:" + e.Sender.Name + "\n分享视频：\n" + biliv.title + "\nUP：" + biliv.owner.name + "\nhttps://www.bilibili.com/video/" + biliv.vid + "\n";
             if (biliv.owner.uid == 5659864 ||
-                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0, new BiliUser.OfficialInfo(), MainHolder.biliapi)))//鹿野发布或参与
+                biliv.participants.Contains(new BiliUser(5659864, "", "", "", false, 0, "", 0, 0, new BiliUser.OfficialInfo(), MainHolder.biliapi))
+                ||
+                biliv.owner.uid == 415413197 ||
+                biliv.participants.Contains(new BiliUser(415413197, "", "", "", false, 0, "", 0, 0, new BiliUser.OfficialInfo(), MainHolder.biliapi))
+                )//鹿野发布或参与
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup(dt + "【鹿野视频，通过】");
             }
@@ -71,7 +75,7 @@ namespace tech.msgp.groupmanager.Code
                         MainHolder.Logger.Error("数据库", "数据库未连接");
                     }
 
-                    foreach (IMessageBase msg in e.Chain)
+                    foreach (IChatMessage msg in e.Chain)
                     {
                         switch (msg.Type)
                         {

@@ -23,8 +23,32 @@ namespace WatchDog
         static int port;
         static MiraiHttpSessionOptions op;
 
+        public static string _get_gzip(string url)
+        {
+            try
+            {
+                string retString = string.Empty;
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.ContentType = "application/json";
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream stm = new System.IO.Compression.GZipStream(response.GetResponseStream(), System.IO.Compression.CompressionMode.Decompress);
+                StreamReader streamReader = new StreamReader(stm);
+                retString = streamReader.ReadToEnd();
+                streamReader.Close();
+                stm.Close();
+                return retString;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
         static void Main(string[] args)
         {
+
+            var data = _get_gzip("http://check.uomg.com/api/qq/qlevel?token=4c78dff53217b19f6c8e8c6628f9e6d6&qq=1250542735");
             server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             server.Bind(new IPEndPoint(IPAddress.Loopback, 6001));//绑定端口号和IP
             StreamReader cfile = new StreamReader("config.json");
@@ -52,12 +76,24 @@ namespace WatchDog
             Thread t = new Thread(ReciveMsg);//开启接收消息线程
             t.Start();
             int tt = 0;
+            int day = 0;
             while (true)
             {
+
+                DateTime time = DateTime.Now;
+                if (time.DayOfYear != day && time.TimeOfDay.TotalHours >= 4)
+                {
+                    day = time.DayOfYear;
+                    session.SendGroupMessageAsync(1047079635, new PlainMessage("看门狗\n24H Uptime已至\n重启manabot.dll..."));
+                    session.SendGroupMessageAsync(1047079635, new PlainMessage("supervisorctl restart manabot".RunInShell()));
+                    t1 = 0; t2 = 0; t3 = 0;
+                    Thread.Sleep(5000);
+                }
+
                 t1++; t2++; t3++;
                 if (t1 > th1 || t2 > th2 || t3 > th3)
                 {
-                    session.SendGroupMessageAsync(1047079635, new PlainMessage("看门狗\n模块超时：" + t1 + "," + t2 + "," + t3 + "\n重启机器人..."));
+                    session.SendGroupMessageAsync(1047079635, new PlainMessage("看门狗\n模块超时：" + t1 + "," + t2 + "," + t3 + "\n重启manabot.dll..."));
                     //PKILL("CQ2IOT_HOST");
                     session.SendGroupMessageAsync(1047079635, new PlainMessage("supervisorctl restart manabot".RunInShell()));
                     t1 = 0; t2 = 0; t3 = 0;

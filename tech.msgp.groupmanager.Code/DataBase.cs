@@ -1,4 +1,4 @@
-﻿using Mirai_CSharp.Models;
+﻿using Mirai.CSharp.Models;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -1744,6 +1744,10 @@ namespace tech.msgp.groupmanager.Code
             throw new Exception("未能找到该ID对应的警告数据");
         }
 
+        /// <summary>
+        /// 列出直播封禁
+        /// </summary>
+        /// <returns></returns>
         public List<int> listPermbans()
         {
             Dictionary<string, string> args = new Dictionary<string, string>();
@@ -1760,6 +1764,13 @@ namespace tech.msgp.groupmanager.Code
             return group;
         }
 
+        /// <summary>
+        /// 登记直播标记
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="lid"></param>
+        /// <param name="timeline"></param>
+        /// <returns></returns>
         public string recLiveMark(int uid, int lid, int timeline)
         {
             string uuid = Guid.NewGuid().ToString();
@@ -1771,8 +1782,60 @@ namespace tech.msgp.groupmanager.Code
                 { "@timeline", timeline.ToString() },
                 { "@pointtime", (timeline/60).ToString() },
             };
-            execsql("INSERT INTO bili_livemarks (uid, pointid, lid, timeline, pointtime) VALUES (@uid, @pointid, @lid, @timeline, pointtime);", args);
+            execsql("INSERT INTO bili_livemarks (uid, pointid, lid, timeline, pointtime) VALUES (@uid, @pointid, @lid, @timeline, @pointtime);", args);
             return uuid;
+        }
+
+        /// <summary>
+        /// 获得QQ等级缓存
+        /// </summary>
+        /// <param name="qq"></param>
+        /// <returns></returns>
+        public int getQQLevelTemp(long qq)
+        {
+            Dictionary<string, string> args = new Dictionary<string, string>();
+            List<int> vs = new List<int>
+            {
+                1,
+                2
+            };
+
+            args.Add("@qq", qq.ToString());
+
+            List<List<string>> re = querysql("SELECT * from qqlevel_tmp where qq = @qq;", args, vs);
+            foreach (List<string> line in re)
+            {
+                var lastupdate = DateTime.Parse(line[1]);
+                if ((DateTime.Now - lastupdate).Days < 30)
+                    return int.Parse(line[0]);
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// 写入QQ等级缓存
+        /// </summary>
+        /// <param name="qq"></param>
+        /// <param name="level"></param>
+        public void setQQLevelTemp(long qq, int level)
+        {
+            Dictionary<string, string> args = new Dictionary<string, string>
+            {
+                { "@qq", qq.ToString() },
+                { "@level", level.ToString() },
+            };
+            execsql("INSERT INTO qqlevel_tmp(qq,level,lastupdate) VALUE(@qq,@level,NOW()) ON DUPLICATE KEY UPDATE level= @level,lastupdate=NOW()", args);
+        }
+
+        /// <summary>
+        /// 判断指定群是否应由机器人处理
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        public bool IsGroupRelated(long group)
+        {
+            return (this.isAdminGroup(group) || this.isCrewGroup(group) ||
+                this.isMEIgnoreGroup(group) || !this.getGroupName(group).Equals("UNDEFINED_IN_DATABASE")) ;
         }
         #endregion
     }

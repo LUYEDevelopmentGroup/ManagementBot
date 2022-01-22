@@ -1,6 +1,6 @@
 ﻿using CQ2IOT;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
+using Mirai.CSharp;
+using Mirai.CSharp.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ using BiliApi.Auth;
 using tech.msgp.groupmanager.Code.ScriptHandler;
 using tech.msgp.groupmanager.Code.MCServer;
 using Newtonsoft.Json;
+using Mirai.CSharp.HttpApi.Session;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -158,7 +159,7 @@ namespace tech.msgp.groupmanager.Code
                                 }
                             }
                             bililogin = new BiliApi.Auth.QRLogin();
-                            broadcaster.BroadcastToAdminGroup(new IMessageBase[] {
+                            broadcaster.BroadcastToAdminGroup(new IChatMessage[] {
                             new ImageMessage(null, "https://api.pwmqr.com/qrcode/create/?url=" + HttpUtility.UrlEncode(bililogin.QRToken.ScanUrl), null),
                             new PlainMessage("Token="+bililogin.QRToken.OAuthKey+"\n部分模块依赖B站账号访问权，已挂起。授权完成后将释放它们。")
                             });
@@ -186,7 +187,6 @@ namespace tech.msgp.groupmanager.Code
                         Thread.Sleep(1000);
                     }
                 }
-
                 //B站登录完成，加载相关模块
                 try
                 {

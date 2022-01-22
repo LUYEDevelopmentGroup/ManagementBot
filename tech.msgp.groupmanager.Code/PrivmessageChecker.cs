@@ -93,6 +93,7 @@ namespace tech.msgp.groupmanager.Code
                                             {
                                                 session.sendMessage("[自动回复] 您不能使用该QQ号，因为它存在严重违规记录，已被禁止加群。\n如需帮助，请联系鸡蛋(QQ1250542735)");
                                                 MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定黑名单中的账号：" + fq);
+                                                continue;
                                             }
                                             var cgroups = DataBase.me.getCrewGroup();
                                             var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
@@ -128,6 +129,15 @@ namespace tech.msgp.groupmanager.Code
                                             MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定黑名单中的账号：" + qq);
                                         }
                                         else
+                                        {
+                                            int qqlevel = ThirdPartAPIs.getQQLevel(qq, 2);
+                                            if (qqlevel < 16)
+                                            {
+                                                session.sendMessage("[自动回复] 您不能使用该QQ号，因为它没有达到等级要求(" + qqlevel + "<16)\n如需帮助，请联系鸡蛋(QQ1250542735)");
+                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定等级过低的账号(" + qqlevel + "<16)：" + qq);
+                                                continue;
+                                            }
+                                        }
                                         if (DataBase.me.isBiliPending(pm.talker.uid))//等待绑定QQ
                                         {
                                             if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
@@ -187,6 +197,7 @@ namespace tech.msgp.groupmanager.Code
                                     MainHolder.broadcaster.BroadcastToAdminGroup(session.lastjson);
                                 }
                             }
+                            Thread.Sleep(1 * 1000);
                         }
                         lateststamp = BiliApi.TimestampHandler.GetTimeStamp(DateTime.Now);
                         WatchDog.FeedDog("pmsgchk");
@@ -195,7 +206,7 @@ namespace tech.msgp.groupmanager.Code
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[B站私信部分_外循环]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace + "\n-= Func Failure =-");
                     }
-                    Thread.Sleep(30 * 1000);
+                    Thread.Sleep(60 * 1000);
                 }
             }
             catch (Exception err)

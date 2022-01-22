@@ -1,4 +1,4 @@
-﻿using Mirai_CSharp.Models;
+﻿using Mirai.CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Net;

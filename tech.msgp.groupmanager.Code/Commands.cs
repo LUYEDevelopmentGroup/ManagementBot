@@ -1,5 +1,5 @@
-﻿using Mirai_CSharp;
-using Mirai_CSharp.Models;
+﻿using Mirai.CSharp;
+using Mirai.CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +9,9 @@ using BroadTicketUtility;
 using System.IO;
 using System.Drawing.Imaging;
 using tech.msgp.groupmanager.Code.ScriptHandler;
+using Mirai.CSharp.HttpApi.Models.EventArgs;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
+using Mirai.CSharp.HttpApi.Session;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -21,7 +24,7 @@ namespace tech.msgp.groupmanager.Code
         public static List<string> getAllPictures(IGroupMessageEventArgs e)
         {
             List<string> list = new List<string>();
-            foreach (IMessageBase msg in e.Chain)
+            foreach (IChatMessage msg in e.Chain)
             {
                 if (msg.Type == "Image")
                 {
@@ -79,18 +82,18 @@ namespace tech.msgp.groupmanager.Code
             if (!succeed)
             {
                 var msg = MainHolder.session.UploadPictureAsync(UploadTarget.Group, ms).Result;
-                MainHolder.broadcaster.BroadcastToAdminGroup(new IMessageBase[] { new PlainMessage("船员<" + uid + ">的船票无法送达"), msg });
+                MainHolder.broadcaster.BroadcastToAdminGroup(new IChatMessage[] { new PlainMessage("船员<" + uid + ">的船票无法送达"), (IChatMessage)msg });
             }
             else
             {
-                MainHolder.broadcaster.BroadcastToAdminGroup(new IMessageBase[] { new PlainMessage("船员<" + uid + ">船票已送达\nSerial=" + a.Data.SerialNumber.ToString()) });
+                MainHolder.broadcaster.BroadcastToAdminGroup(new IChatMessage[] { new PlainMessage("船员<" + uid + ">船票已送达\nSerial=" + a.Data.SerialNumber.ToString()) });
             }
         }
 
         public static List<long> getAllAts(IGroupMessageEventArgs e)
         {
             List<long> list = new List<long>();
-            foreach (IMessageBase msg in e.Chain)
+            foreach (IChatMessage msg in e.Chain)
             {
                 if (msg.Type == "At")
                 {
@@ -222,20 +225,20 @@ namespace tech.msgp.groupmanager.Code
                             case "#json":
                                 {
                                     int pos = clearstr.IndexOf("{");
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new JsonMessage() { Json = clearstr.Substring(pos) } });
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[] { new JsonMessage() { Json = clearstr.Substring(pos) } });
                                 }
                                 break;
                             case "#xml":
                                 {
                                     int pos = clearstr.IndexOf("<");
                                     string st = clearstr.Substring(pos);
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new XmlMessage() { Xml = st } });
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[] { new XmlMessage() { Xml = st } });
                                 }
                                 break;
                             case "#app":
                                 {
                                     int pos = clearstr.IndexOf("{");
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new AppMessage() { Content = clearstr.Substring(pos) } });
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[] { new AppMessage() { Content = clearstr.Substring(pos) } });
                                 }
                                 break;
                             case "#解除拉黑":
@@ -290,7 +293,7 @@ namespace tech.msgp.groupmanager.Code
                                     string fname = cmd[1];
                                     DataBase.me.getMessageGroup(fname, out string fresid, out int tsum, out int flag, out int serviceID, out int m_fileSize);
                                     XmlMessage xmlMessage = new XmlMessage("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<msg brief=\"[存证]\" m_fileName=\"" + fname + "\" action=\"viewMultiMsg\" tSum=\"" + tsum + "\" flag=\"" + flag + "\" m_resid=\"" + fresid + "\" serviceID=\"" + serviceID + "\" m_fileSize=\"" + m_fileSize + "\"  > <item layout=\"1\"> <title color=\"#000000\" size=\"34\" > 聊天记录存证 </title> <title color=\"#000000\" size=\"26\" > 腾讯消息存档 </title> <title color=\"#000000\" size=\"26\" > " + fname + " </title> <hr></hr> <summary color=\"#808080\" size=\"26\" > 查看该条存证  </summary> </item><source name=\"聊天记录\"></source> </msg>");
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { xmlMessage });
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[] { xmlMessage });
                                 }
                                 break;
                             case "#不信任":
@@ -396,7 +399,7 @@ namespace tech.msgp.groupmanager.Code
                                 Warn(session, e, clearstr, double.Parse(cmd[2]));
                                 break;
                             case "#weigh":
-                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[]{
                                     new AtMessage(e.Sender.Id),
                                     new PlainMessage("您的权重为<"+DataBase.me.getOPWeigh(e.Sender.Id)+">\n该值用于稳定违规处罚力度，可能会动态调整。")
                                     });
@@ -854,7 +857,7 @@ namespace tech.msgp.groupmanager.Code
                             }
                             break;
                         case "#VOICE":
-                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[] { new VoiceMessage(null, "http://192.168.1.7:8910/rand.php?rand" + new Random().Next().ToString(), null) });
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[] { new VoiceMessage(null, "http://192.168.1.7:8910/rand.php?rand" + new Random().Next().ToString(), null) });
                             break;
                     }
                 }
@@ -896,7 +899,7 @@ namespace tech.msgp.groupmanager.Code
                                 if (ii >= 10) break;
                             }
                             resu = sb.ToString().Substring(0, 100);
-                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[]{
                                 new AtMessage(e.Sender.Id),
                                 new PlainMessage("\n"+resu+"\n<输出过长被截断>")
                             });
@@ -905,7 +908,7 @@ namespace tech.msgp.groupmanager.Code
                         else
                         if (resu.Length > 100)
                         {
-                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[]{
                                 new AtMessage(e.Sender.Id),
                                 new PlainMessage("\n"+resu.Substring(0,100)+"\n<输出过长被截断>")
                             });
@@ -913,7 +916,7 @@ namespace tech.msgp.groupmanager.Code
                         }
                         else
                         {
-                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IMessageBase[]{
+                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, new IChatMessage[]{
                                 new AtMessage(e.Sender.Id),
                                 new PlainMessage("\n"+resu)
                             });

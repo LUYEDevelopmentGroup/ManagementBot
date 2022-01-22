@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
-using Mirai_CSharp.Plugin.Interfaces;
+using Mirai.CSharp;
+using Mirai.CSharp.Models;
+using Mirai.CSharp.Plugin.Interfaces;
 using BiliApi.BiliPrivMessage;
 using static tech.msgp.groupmanager.Code.DataBase;
 
@@ -14,6 +14,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
     {
         public async Task<bool> GroupMemberJoined(MiraiHttpSession session, IGroupMemberJoinedEventArgs e)
         {
+            if (!DataBase.me.IsGroupRelated(e.Member.Group.Id)) return true;
             string usname = e.Member.Name;
             long qq = e.Member.Id;
             long groupId = e.Member.Group.Id;
