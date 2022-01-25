@@ -8,18 +8,23 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Mirai.CSharp.Models;
-using Mirai.CSharp.Models.ChatMessages;
+using Mirai.CSharp.HttpApi.Models;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 using tech.msgp.groupmanager.Code.MCServer;
 using static tech.msgp.groupmanager.Code.DataBase;
-using Mirai.CSharp;
-using Mirai.CSharp.Models;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Mirai.CSharp.HttpApi.Parsers.Attributes;
+using Mirai.CSharp.HttpApi.Parsers;
+using Mirai.CSharp.HttpApi.Models.EventArgs;
+using Mirai.CSharp.HttpApi.Handlers;
+using Mirai.CSharp.HttpApi.Session;
 
-namespace tech.msgp.groupmanager.Code
+namespace tech.msgp.groupmanager.Code.EventHandlers
 {
-    public class PrivMessageHan : ITempMessage, IFriendMessage
+    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<IFriendMessageEventArgs, FriendMessageEventArgs>))]
+    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<ITempMessageEventArgs,TempMessageEventArgs>))]
+    public partial class EventHandler : IMiraiHttpMessageHandler<IFriendMessageEventArgs>, IMiraiHttpMessageHandler<ITempMessageEventArgs>
     {
         static Dictionary<long, List<long>> me_user_tmp = new Dictionary<long, List<long>>();
 
@@ -608,18 +613,18 @@ namespace tech.msgp.groupmanager.Code
             return (int)(dateTime - TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1))).TotalSeconds;
         }
 
-        public async Task<bool> TempMessage(MiraiHttpSession session, ITempMessageEventArgs e)
+        public async Task HandleMessageAsync(IMiraiHttpSession client, ITempMessageEventArgs e)
         {
             MsgReplyTemp r = new MsgReplyTemp() { fromGroup = e.Sender.Group.Id, qq = e.Sender.Id };
             ProcessMessage(r, e.Chain);
-            return true;
+            return;
         }
 
-        public async Task<bool> FriendMessage(MiraiHttpSession session, IFriendMessageEventArgs e)
+        public async Task HandleMessageAsync(IMiraiHttpSession client, IFriendMessageEventArgs e)
         {
             MsgReplyFriend r = new MsgReplyFriend() { qq = e.Sender.Id };
             ProcessMessage(r, e.Chain);
-            return true;
+            return;
         }
 
         public void ProcessMessage(MsgReply rply, IChatMessage[] chain)
@@ -670,8 +675,8 @@ namespace tech.msgp.groupmanager.Code
                 MemoryStream ms = new MemoryStream();
                 image.Save(ms, ImageFormat.Png);
                 ms.Seek(0, SeekOrigin.Begin);
-                var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
-                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { pmsg }, fromGroup);
+                var pmsg = MainHolder.session.UploadPictureAsync(Mirai.CSharp.Models.UploadTarget.Temp, ms).Result;
+                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { (IChatMessage)pmsg }, fromGroup);
             }
         }
         public class MsgReplyFriend : MsgReply
@@ -691,8 +696,8 @@ namespace tech.msgp.groupmanager.Code
                 MemoryStream ms = new MemoryStream();
                 image.Save(ms, ImageFormat.Png);
                 ms.Seek(0, SeekOrigin.Begin);
-                var pmsg = MainHolder.session.UploadPictureAsync(UploadTarget.Temp, ms).Result;
-                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { pmsg });
+                var pmsg = MainHolder.session.UploadPictureAsync(Mirai.CSharp.Models.UploadTarget.Temp, ms).Result;
+                MainHolder.broadcaster.SendToQQ(qq, new IChatMessage[] { (IChatMessage)pmsg });
             }
         }
         #endregion

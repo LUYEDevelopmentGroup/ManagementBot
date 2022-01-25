@@ -17,6 +17,7 @@ using tech.msgp.groupmanager.Code.ScriptHandler;
 using tech.msgp.groupmanager.Code.MCServer;
 using Newtonsoft.Json;
 using Mirai.CSharp.HttpApi.Session;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -32,7 +33,7 @@ namespace tech.msgp.groupmanager.Code
         public static int MsgCount;
         public static List<long> friends;
         public static pThreadPool pool;
-        public static MiraiHttpSession session;
+        public static IMiraiHttpSession session;
         public static BiliApi.Auth.QRLogin bililogin;
         public static BiliApi.ThirdPartAPIs biliapi;
         public static bool doBiliLogin = false;

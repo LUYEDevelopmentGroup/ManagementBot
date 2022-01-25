@@ -14,7 +14,7 @@ using Mirai.CSharp.Models;
 namespace tech.msgp.groupmanager.Code.EventHandlers
 {
     [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<IGroupApplyEventArgs, GroupApplyEventArgs>))]
-    public class GroupEnterRequest : IMiraiHttpMessageHandler<IGroupApplyEventArgs>
+    public partial class EventHandler : IMiraiHttpMessageHandler<IGroupApplyEventArgs>
     {
         public async Task HandleMessageAsync(IMiraiHttpSession session, IGroupApplyEventArgs e)
         {

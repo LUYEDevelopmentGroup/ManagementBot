@@ -2,19 +2,23 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Mirai.CSharp;
-using Mirai.CSharp.Models;
-using Mirai.CSharp.Plugin.Interfaces;
+using Mirai.CSharp.HttpApi.Handlers;
 using BiliApi.BiliPrivMessage;
 using static tech.msgp.groupmanager.Code.DataBase;
+using Mirai.CSharp.HttpApi.Parsers.Attributes;
+using Mirai.CSharp.HttpApi.Parsers;
+using Mirai.CSharp.HttpApi.Models.EventArgs;
+using Mirai.CSharp.HttpApi.Session;
+using Mirai.CSharp.HttpApi.Models;
 
 namespace tech.msgp.groupmanager.Code.EventHandlers
 {
-    public class GroupMemberIncrease : IGroupMemberJoined
+    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<IGroupMemberJoinedEventArgs, GroupMemberJoinedEventArgs>))]
+    public partial class EventHandler : IMiraiHttpMessageHandler<IGroupMemberJoinedEventArgs>
     {
-        public async Task<bool> GroupMemberJoined(MiraiHttpSession session, IGroupMemberJoinedEventArgs e)
+        public async Task HandleMessageAsync(IMiraiHttpSession client, IGroupMemberJoinedEventArgs e)
         {
-            if (!DataBase.me.IsGroupRelated(e.Member.Group.Id)) return true;
+            if (!DataBase.me.IsGroupRelated(e.Member.Group.Id)) return;
             string usname = e.Member.Name;
             long qq = e.Member.Id;
             long groupId = e.Member.Group.Id;
@@ -92,7 +96,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n这条消息可能意味着机器人发生了错误。它仍在继续运行，但可能不是很稳定。下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[已入群的处理]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace);
             }
-            return true;
+            return;
         }
     }
 }

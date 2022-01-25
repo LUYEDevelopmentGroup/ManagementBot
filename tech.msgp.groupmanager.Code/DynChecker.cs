@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using BiliApi;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 
 namespace tech.msgp.groupmanager.Code
 {

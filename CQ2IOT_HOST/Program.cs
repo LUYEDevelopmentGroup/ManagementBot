@@ -1,6 +1,10 @@
 ﻿using CQ2IOT;
-using Mirai_CSharp;
-using Mirai_CSharp.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Mirai.CSharp.Builders;
+using Mirai.CSharp.HttpApi.Builder;
+using Mirai.CSharp.HttpApi.Invoking;
+using Mirai.CSharp.HttpApi.Options;
+using Mirai.CSharp.HttpApi.Session;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,7 +13,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using tech.msgp.groupmanager.Code;
-using tech.msgp.groupmanager.Code.EventHandlers;
 
 namespace CQ2IOT_HOST
 {
@@ -28,12 +31,12 @@ namespace CQ2IOT_HOST
         private static string authenti;
         public static bool DEBUGMODE = false;
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
 #if DEBUG
-logger("DEBUG", "WARNING: Running in debug mode.");
-DEBUGMODE=true;
-Thread.Sleep(5000);
+            logger("DEBUG", "WARNING: Running in debug mode.");
+            DEBUGMODE = true;
+            Thread.Sleep(5000);
 #endif
             DateTime start = DateTime.Now;
             string ipv4_ip = "";//NetworkInfo.GetLocalIpAddress();
@@ -79,11 +82,38 @@ Thread.Sleep(5000);
                 {
                     //Console.Title = "ManageBot By Developer_ken - Initializing...";
                     logger("MainThread", "Pushing up the engine...", ConsoleColor.Black, ConsoleColor.Green);
-                    MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, key);
-                    MainHolder.session = new MiraiHttpSession();
-                    MainHolder.session.ConnectAsync(options, me_qq).Wait();
+                    {
+                        IServiceProvider services = new ServiceCollection().AddMiraiBaseFramework()   // 表示使用基于基础框架的构建器
+                                                   .AddHandler<tech.msgp.groupmanager.Code.EventHandlers.EventHandler>()
+                                                   .Services
+                                                   .AddDefaultMiraiHttpFramework() // 表示使用 mirai-api-http 实现的构建器
+                                                   .ResolveParser<tech.msgp.groupmanager.Code.EventHandlers.EventHandler>()// 只提前解析 DynamicPlugin 将要用到的消息解析器
+                                                   .AddInvoker<MiraiHttpMessageHandlerInvoker>() // 使用默认的调度器
+                                                   .AddClient<MiraiHttpSession>() // 使用默认的客户端
+                                                   .Services
+                                                   // 由于 IMiraiHttpSession 使用 IOptions<MiraiHttpSessionOptions>, 其作为 Singleton 被注册
+                                                   // 配置此项将配置基于此 IServiceProvider 全局的连接配置
+                                                   // 如果你想一个作用域一个配置的话
+                                                   // 自行做一个实现类, 继承IMiraiHttpSession, 构造参数中使用 IOptionsSnapshot<MiraiHttpSessionOptions>
+                                                   // 并将其传递给父类的构造参数
+                                                   // 然后在每一个作用域中!先!配置好 IOptionsSnapshot<MiraiHttpSessionOptions>, 再尝试获取 IMiraiHttpSession
+                                                   .Configure<MiraiHttpSessionOptions>(options =>
+                                                   {
+                                                       options.Host = host;
+                                                       options.Port = port; // 端口
+                                                       options.AuthKey = key; // 凭据
+                                                   })
+                                                   .AddLogging()
+                                                   .BuildServiceProvider();
+                        IServiceScope scope = services.CreateScope();
+                        await using var x = (IAsyncDisposable)scope;
+                        //await using AsyncServiceScope scope = services.CreateAsyncScope(); // 自 .NET 6.0 起才可以如此操作代替上边两句
+                        services = scope.ServiceProvider;
+                        IMiraiHttpSession session = services.GetRequiredService<IMiraiHttpSession>(); // 大部分服务都基于接口注册, 请使用接口作为类型解析
+                        await session.ConnectAsync(me_qq); // 填入期望连接到的机器人QQ号
+                        MainHolder.session = session;
+                    }
                     //MainHolder.session.GetFriendListAsync().Wait();
-                    MainHolder.session.DisconnectedEvt += Session_DisconnectedEvt;
                     logger("MainThread", "BotAPI is up.", ConsoleColor.Black, ConsoleColor.Green);
                     pool = new pThreadPool();
                     MainHolder.pool = pool;
@@ -119,6 +149,7 @@ Thread.Sleep(5000);
                     //Console.Title = "ManageBot By Developer_ken - Standby";
                     try
                     {
+                        /*
                         MainHolder.session.GroupMessageEvt += new Event_GroupMessage().GroupMessage;
                         MainHolder.session.GroupApplyEvt += new GroupEnterRequest().GroupApply;
                         MainHolder.session.GroupMemberJoinedEvt += new GroupMemberIncrease().GroupMemberJoined;
@@ -221,14 +252,14 @@ Thread.Sleep(5000);
             }
         }
 
-        private async static System.Threading.Tasks.Task<bool> Session_DisconnectedEvt(MiraiHttpSession sender, Exception e)
+        private async static System.Threading.Tasks.Task<bool> Session_DisconnectedEvt(IMiraiHttpSession sender, Exception e)
         {
             logger("Connection", e.Message);
             while (true) try
                 {
                     logger("Connection", "Reconnecting...");
                     MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, key);
-                    await sender.ConnectAsync(options, me_qq);
+                    await sender.ConnectAsync(me_qq);
                     if (!e.Message.Contains("未知的消息类型"))
                         MainHolder.broadcaster.BroadcastToAdminGroup("[断线重连]\n诊断报告：" + e.Message + "\n" + e.StackTrace);
                     break;

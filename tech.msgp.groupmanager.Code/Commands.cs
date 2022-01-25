@@ -104,7 +104,7 @@ namespace tech.msgp.groupmanager.Code
             return list;
         }
 
-        public static void Warn(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr, double weigh)
+        public static void Warn(IMiraiHttpSession session, IGroupMessageEventArgs e, string clearstr, double weigh)
         {
             string[] cmd = clearstr.Split(' ');
             string imgdata = "";
@@ -174,7 +174,7 @@ namespace tech.msgp.groupmanager.Code
         public static long cocogroup = -1;
         public static DateTime lastUserexecute = DateTime.Now;
 
-        public static void Proc(MiraiHttpSession session, IGroupMessageEventArgs e, string clearstr)
+        public static void Proc(IMiraiHttpSession session, IGroupMessageEventArgs e, string clearstr)
         {
             if (clearstr == null || clearstr.Length < 2 || clearstr.IndexOf("#") != 0)
             {

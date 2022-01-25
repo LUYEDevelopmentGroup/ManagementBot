@@ -1,7 +1,6 @@
 ﻿using CQ2IOT;
 using Mirai.CSharp;
 using Mirai.CSharp.Models;
-using Mirai.CSharp.Plugin.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Xml;
@@ -10,10 +9,17 @@ using Newtonsoft.Json.Linq;
 using System.Drawing;
 using BroadTicketUtility;
 using BroadTicketUtility.Exceptions;
+using Mirai.CSharp.HttpApi.Parsers.Attributes;
+using Mirai.CSharp.HttpApi.Parsers;
+using Mirai.CSharp.HttpApi.Models.EventArgs;
+using Mirai.CSharp.HttpApi.Handlers;
+using Mirai.CSharp.HttpApi.Session;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 
-namespace tech.msgp.groupmanager.Code
+namespace tech.msgp.groupmanager.Code.EventHandlers
 {
-    public class Event_GroupMessage : IGroupMessage
+    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<IGroupMessageEventArgs, GroupMessageEventArgs>))]
+    public partial class EventHandler : IMiraiHttpMessageHandler<IGroupMessageEventArgs>
     {
         public void processVideoBilibili(IGroupMessageEventArgs e, string bvn)
         {
@@ -55,11 +61,12 @@ namespace tech.msgp.groupmanager.Code
         }
 
 #pragma warning disable CS1998 // 此异步方法缺少 "await" 运算符，将以同步方式运行。请考虑使用 "await" 运算符等待非阻止的 API 调用，或者使用 "await Task.Run(...)" 在后台线程上执行占用大量 CPU 的工作。
-        public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
+        public async Task HandleMessageAsync(IMiraiHttpSession client, IGroupMessageEventArgs e)
 #pragma warning restore CS1998 // 此异步方法缺少 "await" 运算符，将以同步方式运行。请考虑使用 "await" 运算符等待非阻止的 API 调用，或者使用 "await Task.Run(...)" 在后台线程上执行占用大量 CPU 的工作。
         {
             try
             {
+                var session = MainHolder.session;
                 WatchDog.FeedDog("grpmsg");
                 pThreadPool pool = MainHolder.pool;
                 //MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");
@@ -125,7 +132,7 @@ namespace tech.msgp.groupmanager.Code
                                             int m_fileSize = int.Parse(doc["msg"].GetAttribute("m_fileSize"));
                                             DataBase.me.saveMessageGroup(fname, fresid, tsum, flag, serviceID, m_fileSize);
                                             MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[消息存证]\n该条消息记录已提交至腾讯服务器\n存根ID:" + fname);
-                                            return false;
+                                            return;
                                             //不再处理该条消息
                                         }
                                         if (doc["msg"]["source"] != null && doc["msg"]["source"].HasAttribute("name"))
@@ -145,7 +152,7 @@ namespace tech.msgp.groupmanager.Code
                                                             if (bvn != null)//真的是视频分享
                                                             {
                                                                 processVideoBilibili(e, bvn);
-                                                                return false;
+                                                                return;
                                                             }
                                                         }
                                                         catch (Exception)
@@ -165,7 +172,7 @@ namespace tech.msgp.groupmanager.Code
                                                         if (bvn != null)//真的是视频分享
                                                         {
                                                             processVideoBilibili(e, bvn);
-                                                            return false;
+                                                            return;
                                                         }
                                                     }
                                                     break;
@@ -264,7 +271,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n这条消息可能意味着机器人发生了错误。它仍在继续运行，但可能不是很稳定。下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[群消息接收处理]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace);
             }
-            return true;
+            return;
         }
     }
 }

@@ -8,6 +8,7 @@ using BiliApi;
 using BiliApi.BiliPrivMessage;
 using BiliveDanmakuAgent.Core;
 using BiliveDanmakuAgent;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 
 namespace tech.msgp.groupmanager.Code
 {
