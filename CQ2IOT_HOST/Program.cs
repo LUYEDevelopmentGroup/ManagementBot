@@ -31,7 +31,7 @@ namespace CQ2IOT_HOST
         private static string authenti;
         public static bool DEBUGMODE = false;
 
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
 #if DEBUG
             logger("DEBUG", "WARNING: Running in debug mode.");
@@ -106,11 +106,11 @@ namespace CQ2IOT_HOST
                                                    .AddLogging()
                                                    .BuildServiceProvider();
                         IServiceScope scope = services.CreateScope();
-                        await using var x = (IAsyncDisposable)scope;
+                        //var x = (IAsyncDisposable)scope;
                         //await using AsyncServiceScope scope = services.CreateAsyncScope(); // 自 .NET 6.0 起才可以如此操作代替上边两句
                         services = scope.ServiceProvider;
                         IMiraiHttpSession session = services.GetRequiredService<IMiraiHttpSession>(); // 大部分服务都基于接口注册, 请使用接口作为类型解析
-                        await session.ConnectAsync(me_qq); // 填入期望连接到的机器人QQ号
+                        session.ConnectAsync(me_qq).Wait(); // 填入期望连接到的机器人QQ号
                         MainHolder.session = session;
                     }
                     //MainHolder.session.GetFriendListAsync().Wait();

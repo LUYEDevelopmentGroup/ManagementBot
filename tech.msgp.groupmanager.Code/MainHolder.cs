@@ -82,12 +82,13 @@ namespace tech.msgp.groupmanager.Code
 
         public static void refreshFriendsList()
         {
-            IFriendInfo[] f = session.GetFriendListAsync().Result;
+            //var f =
+            session.GetFriendListAsync();//.Wait() ;
             friends = new List<long>();
-            foreach (IFriendInfo fr in f)
-            {
-                friends.Add(fr.Id);
-            }
+            //foreach (IFriendInfo fr in f)
+            //{
+            //    friends.Add(fr.Id);
+            //}
         }
         public static void INIT(JObject config)
         {
