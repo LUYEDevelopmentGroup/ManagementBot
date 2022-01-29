@@ -128,12 +128,13 @@ namespace tech.msgp.groupmanager.Code
             retry++;
             for (; retry > 0; retry--)
             {
-                var data = _get_gzip("http://check.uomg.com/api/qq/qlevel?token=4c78dff53217b19f6c8e8c6628f9e6d6&qq=" + qq);
+                //var data = _get_gzip("http://check.uomg.com/api/qq/qlevel?token=4c78dff53217b19f6c8e8c6628f9e6d6&qq=" + qq);
+                var data = _get_gzip("http://cdn.maoley.cn/qq/apiRank.php?qq=" + qq);
                 JObject jb1 = (JObject)JsonConvert.DeserializeObject(data);
                 var code = jb1.Value<int>("code");
                 if (code == 200)
                 {
-                    level = jb1["data"].Value<int>("level");
+                    level = jb1.Value<int>("Leve");
                     DataBase.me.setQQLevelTemp(qq, level);
                     return level;
                 }

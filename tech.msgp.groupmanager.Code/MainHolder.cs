@@ -82,13 +82,12 @@ namespace tech.msgp.groupmanager.Code
 
         public static void refreshFriendsList()
         {
-            //var f =
-            session.GetFriendListAsync();//.Wait() ;
+            var f = session.GetFriendListAsync().Result;
             friends = new List<long>();
-            //foreach (IFriendInfo fr in f)
-            //{
-            //    friends.Add(fr.Id);
-            //}
+            foreach (IFriendInfo fr in f)
+            {
+                friends.Add(fr.Id);
+            }
         }
         public static void INIT(JObject config)
         {
@@ -268,8 +267,9 @@ namespace tech.msgp.groupmanager.Code
                 broadcaster = new Broadcaster();
                 MainHolder.logger("SideLoad", "Broadcaster is UP.", ConsoleColor.Black, ConsoleColor.White);
             }
-            catch (Exception)
+            catch (Exception err)
             {
+                throw;
                 MainHolder.logger("SideLoad", "Broadcaster FAILED.", ConsoleColor.Black, ConsoleColor.Red);
             }
             doBiliLogin = true;

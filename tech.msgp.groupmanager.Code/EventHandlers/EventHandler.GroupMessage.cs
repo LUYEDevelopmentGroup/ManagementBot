@@ -67,6 +67,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             try
             {
                 var session = MainHolder.session;
+                
                 WatchDog.FeedDog("grpmsg");
                 pThreadPool pool = MainHolder.pool;
                 //MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");

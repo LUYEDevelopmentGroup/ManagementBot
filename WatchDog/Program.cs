@@ -17,7 +17,7 @@ namespace WatchDog
         static int t1 = 0, t2 = 0, t3 = 0;
         static int th1 = 4 * 60, th2 = 8, th3 = 60 * 60 * 5;
 
-        static IMiraiHttpSession session;
+        static MiraiHttpSession session;
         static string host, key;
         static long me_qq;
         static int port;
@@ -66,7 +66,7 @@ namespace WatchDog
                 port = 8080;
             }
             op = new MiraiHttpSessionOptions(host, port, key);
-            session = new IMiraiHttpSession();
+            session = new MiraiHttpSession();
             session.ConnectAsync(op, me_qq).Wait();
             //MainHolder.session.GetFriendListAsync().Wait();
             session.DisconnectedEvt += Session_DisconnectedEvt; ;
@@ -118,7 +118,7 @@ namespace WatchDog
             }
         }
 
-        private async static System.Threading.Tasks.Task<bool> Session_DisconnectedEvt(IMiraiHttpSession sender, Exception e)
+        private async static System.Threading.Tasks.Task<bool> Session_DisconnectedEvt(MiraiHttpSession sender, Exception e)
         {
             while (true)
                 try

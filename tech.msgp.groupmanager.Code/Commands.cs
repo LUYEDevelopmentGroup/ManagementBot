@@ -191,7 +191,7 @@ namespace tech.msgp.groupmanager.Code
                     }
                     else
                     {
-                        if ((DateTime.Now - lastUserexecute).TotalSeconds<10)
+                        if ((DateTime.Now - lastUserexecute).TotalSeconds < 10)
                         {
                             MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "<Script Engine>\n拒绝执行：用户不能频繁提交脚本");
                         }
@@ -620,6 +620,14 @@ namespace tech.msgp.groupmanager.Code
                                 break;
                             case "#debug_check_fans":
                                 DynChecker.check_fans(true);
+                                break;
+                            case "#dropmsg":
+                                PrivmessageChecker.DropMessages = !PrivmessageChecker.DropMessages;
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[调试 - 丢弃私信]" + (PrivmessageChecker.DropMessages ? "是" : "否"));
+                                break;
+                            case "#blockmsg":
+                                PrivmessageChecker.BlockReceiver = !PrivmessageChecker.BlockReceiver;
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[调试 - 阻断私信处理]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
                                 break;
                             /*
                         case "#cape":

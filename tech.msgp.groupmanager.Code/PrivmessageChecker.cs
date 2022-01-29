@@ -12,6 +12,8 @@ namespace tech.msgp.groupmanager.Code
     {
         public static PrivSessionManager man;
         private static Bitmap QunQRCode;
+        public static bool BlockReceiver = false;
+        public static bool DropMessages = false;
         //public static List<long> sent = new List<long>();
         public static void startthreads()
         {
@@ -65,12 +67,25 @@ namespace tech.msgp.groupmanager.Code
                         {
                             try
                             {
+                                if (DropMessages)
+                                {
+                                    MainHolder.Logger.Info("PRIVMSG", "DropMsg=True, drop session[#" + session.talker_id + "].");
+                                    session.Close();
+                                    continue;
+                                }
+                                while (BlockReceiver) Thread.Sleep(0);
                                 session.fetch();//Sessions会被自动更新，不再需要手动更新 EDIT:划掉
                                 List<PrivMessage> messages = session.pick_latest_messages();
                                 if (lateststamp >= session.lastmessage.timestamp) continue;//会话最后一条消息在上一次处理之前就已经发送，很可能处理过了
                                 File.WriteAllText("saves/timestamp.int", lateststamp.ToString());
                                 foreach (PrivMessage pm in messages)
                                 {
+                                    if (DropMessages)
+                                    {
+                                        MainHolder.Logger.Info("PRIVMSG", "DropMsg=True, drop message[#" + pm.msg_seqno + "].");
+                                        continue;
+                                    }
+                                    while (BlockReceiver) Thread.Sleep(0);
                                     //var pm = session.lastmessage;
                                     if (pm.content == null || pm.content.Length < 1)
                                     {
@@ -86,105 +101,21 @@ namespace tech.msgp.groupmanager.Code
                                     Task.Delay(1000).Wait();
                                     if (pm.content[0] == 'F')
                                     {
-                                        long.TryParse(pm.content.Substring(1), out long fq);
-                                        if (fq > 1000)
+                                        if (long.TryParse(pm.content.Substring(1), out long fq) && fq > 1000)
                                         {
-                                            if (DataBase.me.isUserBlacklisted(fq))
-                                            {
-                                                session.sendMessage("[自动回复] 您不能使用该QQ号，因为它存在严重违规记录，已被禁止加群。\n如需帮助，请联系鸡蛋(QQ1250542735)");
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定黑名单中的账号：" + fq);
-                                                continue;
-                                            }
-                                            var cgroups = DataBase.me.getCrewGroup();
-                                            var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
-                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq, false);
-                                            if (Collides(cgroups, usergroup, out List<long> cgin))
-                                            {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "\n用户强制换绑QQ。\n将从舰长群踢出" + oldqq + "，然后将新账号" + fq + "录入数据库");
-                                                foreach (var g in cgin)
-                                                {
-                                                    MainHolder.session.KickMemberAsync(oldqq, g, "您通过B站私信绑定了新的舰长QQ。");
-                                                }
-                                            }
-                                            if (DataBase.me.boundBiliWithQQ(pm.talker.uid, fq))
-                                            {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + fq + ")\n已更新数据库");
-                                                session.sendMessage("[自动回复] 您已成功换绑QQ。原先的QQ号(" + oldqq + ")已被解绑，请使用新绑定的QQ号加入舰长群。");
-                                                session.SendImage(QunQRCode);
-                                            }
-                                            else
-                                            {
-                                                session.sendMessage("[自动回复] 系统故障，请稍后重试或联系管理员(鸡蛋QQ1250542735)");
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + fq + ")\n" +
-                                                    "该操作由于一个系统错误未能完成。");
-                                            }
-                                        }
-                                    }
-                                    long.TryParse(pm.content, out long qq);
-                                    if (qq > 1000)
-                                    {//是个数字
-                                        if (DataBase.me.isUserBlacklisted(qq))
-                                        {
-                                            session.sendMessage("[自动回复] 您不能使用该QQ号，因为它存在严重违规记录，已被禁止加群。\n如需帮助，请联系鸡蛋(QQ1250542735)");
-                                            MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定黑名单中的账号：" + qq);
-                                        }
-                                        else
-                                        {
-                                            int qqlevel = ThirdPartAPIs.getQQLevel(qq, 2);
-                                            if (qqlevel < 16)
-                                            {
-                                                session.sendMessage("[自动回复] 您不能使用该QQ号，因为它没有达到等级要求(" + qqlevel + "<16)\n如需帮助，请联系鸡蛋(QQ1250542735)");
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定等级过低的账号(" + qqlevel + "<16)：" + qq);
-                                                continue;
-                                            }
-                                        }
-                                        if (DataBase.me.isBiliPending(pm.talker.uid))//等待绑定QQ
-                                        {
-                                            if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
-                                            {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 绑定了TA的QQ号:" + qq);
-                                                session.sendMessage("[自动回复] 好的，请扫描下方二维码入群。(转发无效)\n" +
-                                                    "如果您的QQ号输入错误，可随时重新发送新的QQ号，我会为您换绑。\n" +
-                                                    "如需帮助，请联系鸡蛋(QQ1250542735)");
-                                                session.SendImage(QunQRCode);
-                                            }
-                                            else
-                                            {
-                                                session.sendMessage("[自动回复] 系统故障，请稍后重试或联系管理员(鸡蛋QQ1250542735)");
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "绑定TA的QQ号:" + qq + "\n该操作由于一个系统错误未能完成。");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            var cgroups = DataBase.me.getCrewGroup();
-                                            var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
-                                            var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq, false);
-                                            if (Collides(cgroups, usergroup, out List<long> _))
-                                            {
-                                                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n拒绝，因为原QQ已经在舰长群中");
-                                                session.sendMessage("[自动回复] 您不能换绑QQ，因为您原先绑定的QQ(" + oldqq + ")已经在舰长群中了。如果需要换绑QQ，请先将原QQ退出舰长群。\n" +
-                                                    "如果强行换绑，系统将会踢出原先的QQ。需强行换绑请发送：\n" +
-                                                    "F" + qq);
-                                            }
-                                            else
-                                            {
-                                                if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
-                                                {
-                                                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n已更新数据库");
-                                                    session.sendMessage("[自动回复] 您已成功换绑QQ。原先的QQ号(" + oldqq + ")将被解绑，请使用新绑定的QQ号加入舰长群。");
-                                                }
-                                                else
-                                                {
-                                                    session.sendMessage("[自动回复] 系统故障，请稍后重试或联系管理员(鸡蛋QQ1250542735)");
-                                                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n" +
-                                                        "该操作由于一个系统错误未能完成。");
-                                                }
-                                            }
+                                            BoundQQ(fq, session, pm, true);
                                         }
                                     }
                                     else
                                     {
-                                        MainHolder.broadcaster.SendToAnEgg("私信.[" + pm.talker.name + "#" + pm.talker.uid + "]:" + pm.content);
+                                        if (long.TryParse(pm.content, out long qq) && qq > 1000)
+                                        {
+                                            BoundQQ(qq, session, pm, false);
+                                        }
+                                        else
+                                        {
+                                            MainHolder.broadcaster.SendToAnEgg("私信.[" + pm.talker.name + "#" + pm.talker.uid + "]:" + pm.content);
+                                        }
                                     }
                                 }
                                 session.Close();
@@ -216,6 +147,75 @@ namespace tech.msgp.groupmanager.Code
                 Thread.Sleep(1000);
                 MainHolder.broadcaster.SendToAnEgg("B站私信部分崩溃。\n" + err.Message + "\n\n" + err.StackTrace);
                 goto run_head;
+            }
+        }
+
+        public static void BoundQQ(long qq, PrivMessageSession session, PrivMessage pm, bool force = false)
+        {
+            if (DataBase.me.isUserBlacklisted(qq))
+            {
+                session.sendMessage("[自动回复] 您不能使用该QQ号，因为它存在严重违规记录，已被禁止加群。\n如需帮助，请联系鸡蛋(QQ1250542735)");
+                MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定黑名单中的账号：" + qq);
+            }
+            else
+            {
+                int qqlevel = ThirdPartAPIs.getQQLevel(qq, 2);
+                if (qqlevel < 0)
+                {
+                    session.sendMessage("[自动回复] 该账号不存在或查询失败，请稍后重试。\n如需帮助，请联系鸡蛋(QQ1250542735)");
+                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " QQ号无效或查询失败：" + qq);
+                    return;
+                }
+                else
+                if (qqlevel < 16)
+                {
+                    session.sendMessage("[自动回复] 您不能使用该QQ号，因为它没有达到等级要求(" + qqlevel + "<16)\n如需帮助，请联系鸡蛋(QQ1250542735)");
+                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 尝试绑定等级过低的账号(" + qqlevel + "<16)：" + qq);
+                    return;
+                }
+            }
+            if (DataBase.me.isBiliPending(pm.talker.uid))//等待绑定QQ
+            {
+                if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
+                {
+                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + " 绑定了TA的QQ号:" + qq);
+                    session.sendMessage("[自动回复] 好的，请扫描下方二维码入群。(转发无效)\n" +
+                        "如果您的QQ号输入错误，可随时重新发送新的QQ号，我会为您换绑。\n" +
+                        "如需帮助，请联系鸡蛋(QQ1250542735)");
+                    session.SendImage(QunQRCode);
+                }
+                else
+                {
+                    session.sendMessage("[自动回复] 系统故障，请稍后重试或联系管理员(鸡蛋QQ1250542735)");
+                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "绑定TA的QQ号:" + qq + "\n失败：似乎无法操作数据库。");
+                }
+            }
+            else
+            {
+                var cgroups = DataBase.me.getCrewGroup();
+                var oldqq = DataBase.me.getUserBoundedQQ(pm.talker.uid);
+                var usergroup = DataBase.me.whichGroupsAreTheUserIn(oldqq, false);
+                if ((!force) && Collides(cgroups, usergroup, out List<long> _))
+                {
+                    MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n拒绝，因为原QQ已经在舰长群中");
+                    session.sendMessage("[自动回复] 您不能换绑QQ，因为您原先绑定的QQ(" + oldqq + ")已经在舰长群中了。如果需要换绑QQ，请先将原QQ退出舰长群。\n" +
+                        "如果强行换绑，系统将会踢出原先的QQ。需强行换绑请发送：\n" +
+                        "F" + qq);
+                }
+                else
+                {
+                    if (DataBase.me.boundBiliWithQQ(pm.talker.uid, qq))
+                    {
+                        MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n已更新数据库");
+                        session.sendMessage("[自动回复] 您已成功换绑QQ。原先的QQ号(" + oldqq + ")将被解绑，请使用新绑定的QQ号加入舰长群。");
+                    }
+                    else
+                    {
+                        session.sendMessage("[自动回复] 系统故障，请稍后重试或联系管理员(鸡蛋QQ1250542735)");
+                        MainHolder.broadcaster.BroadcastToAdminGroup(pm.talker.name + "重新绑定QQ(" + oldqq + "=>" + qq + ")\n" +
+                            "该操作由于一个系统错误未能完成。");
+                    }
+                }
             }
         }
     }
