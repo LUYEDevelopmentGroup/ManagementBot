@@ -371,8 +371,8 @@ namespace tech.msgp.groupmanager.Code
                                     break;
                                 }
 
-                                MainHolder.broadcaster.BroadcastToAdminGroup("【直播间禁言】\n" + name + "#" + uid + "被禁言。\n使用\"#bpban " + uid + "\"可将其永久封禁。");
-                                if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(name + "被禁言");
+                                //MainHolder.broadcaster.BroadcastToAdminGroup("【直播间禁言】\n" + name + "#" + uid + "被禁言。\n使用\"#bpban " + uid + "\"可将其永久封禁。");
+                                //if (MainHolder.useBiliRecFuncs) MainHolder.bilidmkproc.blr.sendDanmaku(name + "被禁言");
                                 DataBase.me.recBLiveBan(lid, uid, -1);
                             }
                             break;
