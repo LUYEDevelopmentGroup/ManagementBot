@@ -18,6 +18,7 @@ using tech.msgp.groupmanager.Code.MCServer;
 using Newtonsoft.Json;
 using Mirai.CSharp.HttpApi.Session;
 using Mirai.CSharp.HttpApi.Models.ChatMessages;
+using System.Drawing.Imaging;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -36,7 +37,9 @@ namespace tech.msgp.groupmanager.Code
         public static IMiraiHttpSession session;
         public static BiliApi.Auth.QRLogin bililogin;
         public static BiliApi.ThirdPartAPIs biliapi;
+        public static QLogin.QLogin qqlogin;
         public static bool doBiliLogin = false;
+        public static bool doQQLogin = false;
 
         /// <summary>
         /// 推送动态的B站UID列表
@@ -123,7 +126,62 @@ namespace tech.msgp.groupmanager.Code
                 }
                 MainHolder.logger("Database", "Updating member info Done");
             }));
-
+            /*
+            //QQ登录
+            pool.submitWorkload(new pThreadPool.workload(() =>
+            {
+                qqlogin = new QLogin.QLogin();
+                doQQLogin = true;
+                while (true)
+                {
+                    while (!doQQLogin) Thread.Sleep(500);
+                    if (File.Exists("saves/qq_login_info.json"))
+                    {
+                        MainHolder.logger("QQLowlevelApi", "Found save.json, loading...");
+                        var j = File.ReadAllText("saves/qq_login_info.json");
+                        qqlogin.DeSerilize(j);
+                        if (ThirdPartAPIs.getQQLevel(1250542735, istrying: true) > 5)
+                        {
+                            MainHolder.logger("QQLowlevelApi", "Done.");
+                        }
+                    }
+                    MainHolder.logger("QQLowlevelApi", "Trying to loging...");
+                    var qrcode = qqlogin.getQR();
+                    MemoryStream ms = new MemoryStream();
+                    qrcode.Save(ms, ImageFormat.Png);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    var msg = MainHolder.session.UploadPictureAsync(UploadTarget.Group, ms).Result;
+                    broadcaster.BroadcastToAdminGroup(new IChatMessage[] {
+                            (IChatMessage)msg,
+                            new PlainMessage("等级查询模块需要扫描二维码授权")
+                            });
+                    var result = qqlogin.Login();
+                    switch (result)
+                    {
+                        case QLogin.QLogin.QLoginStatus.Online:
+                            broadcaster.BroadcastToAdminGroup("二维码授权成功");
+                            MainHolder.logger("QQLowlevelApi", "Done");
+                            if (File.Exists("saves/qq_login_info.json")) File.Delete("saves/qq_login_info.json");
+                            var js = qqlogin.Serilize();
+                            File.WriteAllText("saves/qq_login_info.json", js);
+                            break;
+                        case QLogin.QLogin.QLoginStatus.Offline:
+                            broadcaster.BroadcastToAdminGroup("授权失败：OFFLINE");
+                            MainHolder.logger("QQLowlevelApi", "OFFLINE");
+                            break;
+                        case QLogin.QLogin.QLoginStatus.QRExpired:
+                            broadcaster.BroadcastToAdminGroup("授权失败：QRCODE_EXPIRED");
+                            MainHolder.logger("QQLowlevelApi", "QRCODE_EXPIRED");
+                            break;
+                        case QLogin.QLogin.QLoginStatus.Failed:
+                            broadcaster.BroadcastToAdminGroup("授权失败：FAILED");
+                            MainHolder.logger("QQLowlevelApi", "FAILED");
+                            break;
+                    }
+                    doQQLogin = false;
+                }
+            }));
+            */
             //B站登录、加载相关模块
             pool.submitWorkload(new pThreadPool.workload(() =>
             {

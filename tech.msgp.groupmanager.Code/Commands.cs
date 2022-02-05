@@ -629,6 +629,10 @@ namespace tech.msgp.groupmanager.Code
                                 PrivmessageChecker.BlockReceiver = !PrivmessageChecker.BlockReceiver;
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[调试 - 阻断私信处理]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
                                 break;
+                            case "#boundqq":
+                                DataBase.me.boundBiliWithQQ(long.Parse(cmd[1]), long.Parse(cmd[2]));
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[手动QQ绑定]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
+                                break;
                             /*
                         case "#cape":
                         case "#披风":
@@ -700,6 +704,9 @@ namespace tech.msgp.groupmanager.Code
                             */
                             case "#lb":
                                 MainHolder.doBiliLogin = true;
+                                break;
+                            case "#lq":
+                                MainHolder.doQQLogin = true;
                                 break;
                             case "#发弹幕":
                             case "#senddmk":

@@ -67,7 +67,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             try
             {
                 var session = MainHolder.session;
-                
+
                 WatchDog.FeedDog("grpmsg");
                 pThreadPool pool = MainHolder.pool;
                 //MainHolder.Logger.Debug("CQPLUGIN", "Event_GroupMessageFired");
@@ -85,186 +85,187 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
 
                     foreach (IChatMessage msg in e.Chain)
                     {
-                        switch (msg.Type)
-                        {
-                            case "Plain":
-                                {
-                                    PlainMessage message = (PlainMessage)msg;
-                                    if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Message))
+                        if (msg is not UnknownChatMessage)//不处理UnknownChatMessage
+                            switch (msg.Type)
+                            {
+                                case "Plain":
                                     {
-                                        MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
-                                    }
-                                    //message.Message
-                                    {
-                                        string abvn = AVFinder.abvFromString(message.Message);
-                                        if (abvn != null && abvn != "")
-                                            processVideoBilibili(e, abvn);
-                                    }
-                                    Commands.Proc(session, e, message.Message);
-                                }
-                                break;
-                            case "Xml":
-                                {
-                                    XmlMessage message = (XmlMessage)msg;
-                                    if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Xml))
-                                    {
-                                        MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
-                                    }
-
-                                    if (Commands.cocogroup == e.Sender.Group.Id)
-                                    {
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Xml解析]\n" + message.Xml);
-                                    }
-
-                                    XmlDocument doc = new XmlDocument();
-                                    doc.LoadXml(message.Xml);
-                                    {
-                                        if (doc["msg"] == null)
+                                        PlainMessage message = (PlainMessage)msg;
+                                        if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Message))
                                         {
-                                            MainHolder.broadcaster.SendToAnEgg(e.Sender.Group.Id + "无msg标签的Xml消息\n" + message.Xml);
+                                            MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
                                         }
-                                        if (doc["msg"].HasAttribute("action") && doc["msg"].GetAttribute("action") == "viewMultiMsg" && DataBase.me.isAdminGroup(e.Sender.Group.Id))
+                                        //message.Message
                                         {
-                                            string fname = doc["msg"].GetAttribute("m_fileName");
-                                            string fresid = doc["msg"].GetAttribute("m_resid");
-                                            int tsum = int.Parse(doc["msg"].GetAttribute("tSum"));
-                                            int flag = int.Parse(doc["msg"].GetAttribute("flag"));
-                                            int serviceID = int.Parse(doc["msg"].GetAttribute("serviceID"));
-                                            int m_fileSize = int.Parse(doc["msg"].GetAttribute("m_fileSize"));
-                                            DataBase.me.saveMessageGroup(fname, fresid, tsum, flag, serviceID, m_fileSize);
-                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[消息存证]\n该条消息记录已提交至腾讯服务器\n存根ID:" + fname);
-                                            return;
-                                            //不再处理该条消息
+                                            string abvn = AVFinder.abvFromString(message.Message);
+                                            if (abvn != null && abvn != "")
+                                                processVideoBilibili(e, abvn);
                                         }
-                                        if (doc["msg"]["source"] != null && doc["msg"]["source"].HasAttribute("name"))
+                                        Commands.Proc(session, e, message.Message);
+                                    }
+                                    break;
+                                case "Xml":
+                                    {
+                                        XmlMessage message = (XmlMessage)msg;
+                                        if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Xml))
                                         {
-                                            switch (doc["msg"]["source"].GetAttribute("name"))
+                                            MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
+                                        }
+
+                                        if (Commands.cocogroup == e.Sender.Group.Id)
+                                        {
+                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Xml解析]\n" + message.Xml);
+                                        }
+
+                                        XmlDocument doc = new XmlDocument();
+                                        doc.LoadXml(message.Xml);
+                                        {
+                                            if (doc["msg"] == null)
                                             {
-                                                case "哔哩哔哩"://B站分享
-                                                    if (doc["msg"].GetAttribute("url").IndexOf("/live.bilibili.com/") > 0)//直播分享
-                                                    {
-
-                                                    }
-                                                    if (doc["msg"].GetAttribute("url").IndexOf("/b23.tv/") > 0)//可能是视频分享
-                                                    {
-                                                        try
+                                                MainHolder.broadcaster.SendToAnEgg(e.Sender.Group.Id + "无msg标签的Xml消息\n" + message.Xml);
+                                            }
+                                            if (doc["msg"].HasAttribute("action") && doc["msg"].GetAttribute("action") == "viewMultiMsg" && DataBase.me.isAdminGroup(e.Sender.Group.Id))
+                                            {
+                                                string fname = doc["msg"].GetAttribute("m_fileName");
+                                                string fresid = doc["msg"].GetAttribute("m_resid");
+                                                int tsum = int.Parse(doc["msg"].GetAttribute("tSum"));
+                                                int flag = int.Parse(doc["msg"].GetAttribute("flag"));
+                                                int serviceID = int.Parse(doc["msg"].GetAttribute("serviceID"));
+                                                int m_fileSize = int.Parse(doc["msg"].GetAttribute("m_fileSize"));
+                                                DataBase.me.saveMessageGroup(fname, fresid, tsum, flag, serviceID, m_fileSize);
+                                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[消息存证]\n该条消息记录已提交至腾讯服务器\n存根ID:" + fname);
+                                                return;
+                                                //不再处理该条消息
+                                            }
+                                            if (doc["msg"]["source"] != null && doc["msg"]["source"].HasAttribute("name"))
+                                            {
+                                                switch (doc["msg"]["source"].GetAttribute("name"))
+                                                {
+                                                    case "哔哩哔哩"://B站分享
+                                                        if (doc["msg"].GetAttribute("url").IndexOf("/live.bilibili.com/") > 0)//直播分享
                                                         {
-                                                            string bvn = BiliApi.AVFinder.bvFromB23url(doc["msg"].GetAttribute("url"));
+
+                                                        }
+                                                        if (doc["msg"].GetAttribute("url").IndexOf("/b23.tv/") > 0)//可能是视频分享
+                                                        {
+                                                            try
+                                                            {
+                                                                string bvn = BiliApi.AVFinder.bvFromB23url(doc["msg"].GetAttribute("url"));
+                                                                if (bvn != null)//真的是视频分享
+                                                                {
+                                                                    processVideoBilibili(e, bvn);
+                                                                    return;
+                                                                }
+                                                            }
+                                                            catch (Exception)
+                                                            {
+
+                                                            }
+                                                        }
+                                                        break;
+                                                    case "网页分享":
+                                                        if (doc["msg"].GetAttribute("url").IndexOf("/live.bilibili.com/") > 0)//直播分享
+                                                        {
+
+                                                        }
+                                                        if (doc["msg"].GetAttribute("url").IndexOf("/www.bilibili.com/video/") > 0)//视频分享
+                                                        {
+                                                            string bvn = BiliApi.AVFinder.bvFromPlayURL(doc["msg"].GetAttribute("url"));
                                                             if (bvn != null)//真的是视频分享
                                                             {
                                                                 processVideoBilibili(e, bvn);
                                                                 return;
                                                             }
                                                         }
-                                                        catch (Exception)
-                                                        {
-
-                                                        }
-                                                    }
-                                                    break;
-                                                case "网页分享":
-                                                    if (doc["msg"].GetAttribute("url").IndexOf("/live.bilibili.com/") > 0)//直播分享
-                                                    {
-
-                                                    }
-                                                    if (doc["msg"].GetAttribute("url").IndexOf("/www.bilibili.com/video/") > 0)//视频分享
-                                                    {
-                                                        string bvn = BiliApi.AVFinder.bvFromPlayURL(doc["msg"].GetAttribute("url"));
-                                                        if (bvn != null)//真的是视频分享
-                                                        {
-                                                            processVideoBilibili(e, bvn);
-                                                            return;
-                                                        }
-                                                    }
-                                                    break;
-                                                default:
-                                                    break;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                break;
-                            case "Json":
-                                {
-                                    JsonMessage message = (JsonMessage)msg;
-                                    if (Commands.cocogroup == e.Sender.Group.Id)
+                                    break;
+                                case "Json":
                                     {
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Json解析]\n" + message.Json);
-                                    }
-                                    if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Json))
-                                    {
-                                        MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
-                                    }
-                                }
-                                break;
-                            case "App":
-                                {
-                                    AppMessage message = (AppMessage)msg;
-                                    if (Commands.cocogroup == e.Sender.Group.Id)
-                                    {
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[AppContent解析]\n" + message.Content);
-                                    }
-                                    if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Content))
-                                    {
-                                        MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
-                                    }
-                                    {
-                                        string abvn = null;
-                                        try
+                                        JsonMessage message = (JsonMessage)msg;
+                                        if (Commands.cocogroup == e.Sender.Group.Id)
                                         {
-                                            JObject jb = JObject.Parse(message.Content);
-                                            abvn = AVFinder.bvFromB23url(jb["meta"]["detail_1"]["qqdocurl"].ToString());
+                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[Json解析]\n" + message.Json);
                                         }
-                                         catch
+                                        if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Json))
                                         {
+                                            MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
+                                        }
+                                    }
+                                    break;
+                                case "App":
+                                    {
+                                        AppMessage message = (AppMessage)msg;
+                                        if (Commands.cocogroup == e.Sender.Group.Id)
+                                        {
+                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[AppContent解析]\n" + message.Content);
+                                        }
+                                        if (!DataBase.me.recQQmsg(e.Sender.Id, e.Sender.Group.Id, message.Content))
+                                        {
+                                            MainHolder.Logger.Error("数据库", "未能将消息存入数据库");
+                                        }
+                                        {
+                                            string abvn = null;
+                                            try
+                                            {
+                                                JObject jb = JObject.Parse(message.Content);
+                                                abvn = AVFinder.bvFromB23url(jb["meta"]["detail_1"]["qqdocurl"].ToString());
+                                            }
+                                            catch
+                                            {
+
+                                            }
+                                            if (abvn != null && abvn != "")
+                                                processVideoBilibili(e, abvn);
 
                                         }
-                                        if (abvn != null && abvn != "")
-                                            processVideoBilibili(e, abvn);
-
                                     }
-                                }
-                                break;
-                            case "Source":
-                                break;
-                            case "Image":
-                                {
-                                    /*try
+                                    break;
+                                case "Source":
+                                    break;
+                                case "Image":
                                     {
-                                        ImageMessage message = (ImageMessage)msg;
-                                        Ticket t = TicketCoder.Decode(new Bitmap(PicLoader.loadPictureFromURL(message.Url)));
-                                        string l = "未知";
-                                        switch (t.Data.Level)
+                                        /*try
                                         {
-                                            case Ticket.CrewLevel.舰长:
-                                                l = "舰长";
-                                                break;
-                                            case Ticket.CrewLevel.总督:
-                                                l = "总督";
-                                                break;
-                                            case Ticket.CrewLevel.提督:
-                                                l = "提督";
-                                                break;
+                                            ImageMessage message = (ImageMessage)msg;
+                                            Ticket t = TicketCoder.Decode(new Bitmap(PicLoader.loadPictureFromURL(message.Url)));
+                                            string l = "未知";
+                                            switch (t.Data.Level)
+                                            {
+                                                case Ticket.CrewLevel.舰长:
+                                                    l = "舰长";
+                                                    break;
+                                                case Ticket.CrewLevel.总督:
+                                                    l = "总督";
+                                                    break;
+                                                case Ticket.CrewLevel.提督:
+                                                    l = "提督";
+                                                    break;
+                                            }
+                                            BiliUser bu = new BiliUser(t.Data.Uid, MainHolder.biliapi);
+                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[船票]\n" +
+                                                "版本=" + t.Data.SpecType + "\n" +
+                                                "绑定账号=" + bu.name + "#" + t.Data.Uid + "\n" +
+                                                "签发时间=" + t.Data.GenerateTime.ToString("yyyy MM dd HH:mm:ss") + "\n" +
+                                                "等级=" + l + "\n" +
+                                                "签名有效");
                                         }
-                                        BiliUser bu = new BiliUser(t.Data.Uid, MainHolder.biliapi);
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[船票]\n" +
-                                            "版本=" + t.Data.SpecType + "\n" +
-                                            "绑定账号=" + bu.name + "#" + t.Data.Uid + "\n" +
-                                            "签发时间=" + t.Data.GenerateTime.ToString("yyyy MM dd HH:mm:ss") + "\n" +
-                                            "等级=" + l + "\n" +
-                                            "签名有效");
+                                        catch (SignatureInvalidException err)
+                                        {
+                                            MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该船票签名无效");
+                                        }
+                                        catch { }
+                                        */
                                     }
-                                    catch (SignatureInvalidException err)
-                                    {
-                                        MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "该船票签名无效");
-                                    }
-                                    catch { }
-                                    */
-                                }
-                                break;
-                            default:
-                                break;
-                        }
+                                    break;
+                                default:
+                                    break;
+                            }
                     }
                 }
             }

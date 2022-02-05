@@ -69,11 +69,11 @@ namespace CQ2IOT_HOST
             MainHolder.useBiliRecFuncs = config["auth"].Value<bool>("rectfunc");
             MainHolder.enableNativeFuncs = config["auth"].Value<bool>("nativefuncs");
             //如果是本地ip就走本地
-            if (host == ipv4_ip && Environment.OSVersion.Platform != PlatformID.Win32NT)
-            {
-                logger("MainThread", "Running on the same server! Using 127.0.0.1 to connect mirai.");
-                host = "127.0.0.1";
-            }
+            //if (host == ipv4_ip && Environment.OSVersion.Platform != PlatformID.Win32NT)
+            //{
+            //    logger("MainThread", "Running on the same server! Using 127.0.0.1 to connect mirai.");
+            //    host = "127.0.0.1";
+            //}
             #endregion
 
             while (true)//故障自动重启

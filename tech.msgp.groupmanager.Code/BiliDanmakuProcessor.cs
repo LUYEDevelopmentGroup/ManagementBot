@@ -207,7 +207,7 @@ namespace tech.msgp.groupmanager.Code
                             {
                                 int mainsite_level = GetUserMainSiteLevel(json);
                                 var uid = GetUserUID(json);
-                                if (ml < 1//粉丝牌子小于1级
+                                /*if (ml < 1//粉丝牌子小于1级
                                 && mainsite_level < 1//主站等级小于一级
                                 )
                                 {
@@ -218,7 +218,7 @@ namespace tech.msgp.groupmanager.Code
                                         ((ml < 1) ? "牌子等级：" + ml + "<1\n" : "") +
                                         ((ml < 1) ? "主站等级：" + mainsite_level + "<1\n" : "")
                                         );
-                                }
+                                }*/
                             }
                             DataBase.me.recBLiveDanmaku(e.Danmaku.UserID, e.Danmaku.CommentText, TimestampHandler.GetTimeStamp(DateTime.Now), lid);
                             if (!DataBase.me.isBiliUserExist(e.Danmaku.UserID))
