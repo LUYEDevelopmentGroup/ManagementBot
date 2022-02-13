@@ -42,6 +42,11 @@ namespace tech.msgp.groupmanager.Code
                     if (counter % 600 == 0)
                     {//5分钟一次
                         GC.Collect(5, GCCollectionMode.Optimized, true, true);
+                        if (!MainHolder.bililogin.IsOnline())
+                        {
+                            MainHolder.broadcaster.BroadcastToAdminGroup("BiliWebToken似乎已经失效，将触发重新登录。\n");
+                            MainHolder.doBiliLogin = true;
+                        }
                     }
                     if (counter % 3600 == 0)
                     {//一小时执行一次
@@ -65,7 +70,7 @@ namespace tech.msgp.groupmanager.Code
                     }
                     if ((counter + (60 * 60 * 6)) % (60 * 60 * 12) == 0)
                     {//12小时一次，错位+6小时      帮小伙伴续费黑名单>_<
-                        trigger_BanRefresh();
+                        //trigger_BanRefresh();
                     }
                     if (counter >= (60 * 60 * 24))
                     {
