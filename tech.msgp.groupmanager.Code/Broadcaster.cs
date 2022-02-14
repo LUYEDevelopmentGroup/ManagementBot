@@ -25,7 +25,7 @@ namespace tech.msgp.groupmanager.Code
                 foreach (long gpid in groups)
                 {
                     success = success & SendToGroup(gpid, message);
-                    Thread.Sleep(rand.Next(500,1500));
+                    Thread.Sleep(rand.Next(1000, 3000));
                 }
                 return success;
             }
@@ -37,7 +37,7 @@ namespace tech.msgp.groupmanager.Code
 
         public bool BroadcastToUserGroup(string message)
         {
-            return BroadcastToUserGroup(new PlainMessage[] { new PlainMessage(message) });
+            return BroadcastToUserGroup(new PlainMessage[] { new PlainMessage(message + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool BroadcastToAdminGroup(IChatMessage[] message)
@@ -50,7 +50,7 @@ namespace tech.msgp.groupmanager.Code
                 foreach (long gpid in groups)
                 {
                     success = success & SendToGroup(gpid, message);
-                    Thread.Sleep(rand.Next(500, 1500));
+                    Thread.Sleep(rand.Next(1000, 3000));
                 }
                 return success;
             }
@@ -62,7 +62,7 @@ namespace tech.msgp.groupmanager.Code
 
         public bool BroadcastToAdminGroup(string message)
         {
-            return BroadcastToAdminGroup(new PlainMessage[] { new PlainMessage(message) });
+            return BroadcastToAdminGroup(new PlainMessage[] { new PlainMessage(message + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool SendToGroup(long group, IChatMessage[] msg)
@@ -73,7 +73,7 @@ namespace tech.msgp.groupmanager.Code
 
         public bool SendToGroup(long group, string msg)
         {
-            return SendToGroup(group, new PlainMessage[] { new PlainMessage(msg) });
+            return SendToGroup(group, new PlainMessage[] { new PlainMessage(msg + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool BroadcastToAllGroup(IChatMessage[] msg)
@@ -84,12 +84,12 @@ namespace tech.msgp.groupmanager.Code
 
         public bool BroadcastToAllGroup(string msg)
         {
-            return BroadcastToAllGroup(new PlainMessage[] { new PlainMessage(msg) });
+            return BroadcastToAllGroup(new PlainMessage[] { new PlainMessage(msg + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool BroadcastToAllGroup(string msg, IChatMessage external)
         {
-            return BroadcastToAllGroup(new IChatMessage[] { new PlainMessage(msg), external });
+            return BroadcastToAllGroup(new IChatMessage[] { new PlainMessage(msg + "\n" + GenerateCheckCode(10)), external });
         }
 
         public bool BroadcastToCrewGroup(IChatMessage[] message)
@@ -100,19 +100,19 @@ namespace tech.msgp.groupmanager.Code
             foreach (long gpid in groups)
             {
                 success &= SendToGroup(gpid, message);
-                Thread.Sleep(rand.Next(500, 1500));
+                Thread.Sleep(rand.Next(1000, 3000));
             }
             return success;
         }
 
         public bool BroadcastToCrewGroup(string msg)
         {
-            return BroadcastToCrewGroup(new PlainMessage[] { new PlainMessage(msg) });
+            return BroadcastToCrewGroup(new PlainMessage[] { new PlainMessage(msg + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool SendToAnEgg(string msg)
         {
-            return SendToQQ(1250542735, new PlainMessage[] { new PlainMessage(msg) });
+            return SendToQQ(1250542735, new PlainMessage[] { new PlainMessage(msg + "\n" + GenerateCheckCode(10)) });
         }
 
         public bool SendToQQ(long qq, IChatMessage[] message)
@@ -152,6 +152,30 @@ namespace tech.msgp.groupmanager.Code
         public bool SendToQQ(long qq, string msg)
         {
             return SendToQQ(qq, new PlainMessage[] { new PlainMessage(msg) });
+        }
+
+        int rep = 0;
+        private string GenerateCheckCode(int codeCount)
+        {
+            string str = string.Empty;
+            long num2 = DateTime.Now.Ticks + this.rep;
+            this.rep++;
+            Random random = new Random(((int)(((ulong)num2) & 0xffffffffL)) | ((int)(num2 >> this.rep)));
+            for (int i = 0; i < codeCount; i++)
+            {
+                char ch;
+                int num = random.Next();
+                if ((num % 2) == 0)
+                {
+                    ch = (char)(0x30 + ((ushort)(num % 10)));
+                }
+                else
+                {
+                    ch = (char)(0x41 + ((ushort)(num % 0x1a)));
+                }
+                str = str + ch.ToString();
+            }
+            return str;
         }
 
         [Obsolete("队列不再自行维护", true)]
