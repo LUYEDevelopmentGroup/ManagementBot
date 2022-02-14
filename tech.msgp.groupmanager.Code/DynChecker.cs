@@ -49,8 +49,7 @@ namespace tech.msgp.groupmanager.Code
                         }
                         catch(Exception err)
                         {
-                            MainHolder.Logger.Warning("DynChecker", err.Message);
-                            MainHolder.Logger.Warning("DynChecker", err.StackTrace);
+                            MainHolder.DumpException(err, "DynChecker");
                             continue;
                         }
                         Thread.Sleep(0);

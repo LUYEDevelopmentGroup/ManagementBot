@@ -13,124 +13,87 @@ namespace tech.msgp.groupmanager.Code
     {
         public static string _get(string url)
         {
-            try
-            {
-                string retString = string.Empty;
+            string retString = string.Empty;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                request.ContentType = "application/json";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "application/json";
 
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream myResponseStream = response.GetResponseStream();
-                StreamReader streamReader = new StreamReader(myResponseStream);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                myResponseStream.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                return "";
-            }
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader streamReader = new StreamReader(myResponseStream);
+            retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            myResponseStream.Close();
+            return retString;
         }
 
         public static string _get_gzip(string url)
         {
-            try
-            {
-                string retString = string.Empty;
+            string retString = string.Empty;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                request.ContentType = "application/json";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream stm = new System.IO.Compression.GZipStream(response.GetResponseStream(), System.IO.Compression.CompressionMode.Decompress);
-                StreamReader streamReader = new StreamReader(stm);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                stm.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                return "";
-            }
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "application/json";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream stm = new System.IO.Compression.GZipStream(response.GetResponseStream(), System.IO.Compression.CompressionMode.Decompress);
+            StreamReader streamReader = new StreamReader(stm);
+            retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            stm.Close();
+            return retString;
         }
 
         public static string _Jget(string url)
         {
-            try
-            {
-                string retString = string.Empty;
+            string retString = string.Empty;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                request.ContentType = "application/json";
-                request.UserAgent = "Java Client ; Minecarft PCL Launcher ; Manabot";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream myResponseStream = response.GetResponseStream();
-                StreamReader streamReader = new StreamReader(myResponseStream);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                myResponseStream.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                return "";
-            }
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "application/json";
+            request.UserAgent = "Java Client ; Minecarft PCL Launcher ; Manabot";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader streamReader = new StreamReader(myResponseStream);
+            retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            myResponseStream.Close();
+            return retString;
         }
 
         public static string _get_with_cookies(string url, CookieContainer cookies)
         {
-            try
-            {
-                string retString = string.Empty;
+            string retString = string.Empty;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                //request.ContentType = "application/json";
-                request.CookieContainer = cookies;
-                //request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream myResponseStream = response.GetResponseStream();
-                StreamReader streamReader = new StreamReader(myResponseStream);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                myResponseStream.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                //HttpWebResponse response = (HttpWebResponse)ex.
-                return "";
-            }
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            //request.ContentType = "application/json";
+            request.CookieContainer = cookies;
+            //request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader streamReader = new StreamReader(myResponseStream);
+            retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            myResponseStream.Close();
+            return retString;
         }
 
         public static string _get_with_cookies(string url, string cookies)
         {
-            try
-            {
-                string retString = string.Empty;
+            string retString = string.Empty;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36";
-                request.Headers.Add("cookie", cookies);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream myResponseStream = response.GetResponseStream();
-                StreamReader streamReader = new StreamReader(myResponseStream);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                myResponseStream.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                //HttpWebResponse response = (HttpWebResponse)ex.
-                return "";
-            }
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36";
+            request.Headers.Add("cookie", cookies);
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader streamReader = new StreamReader(myResponseStream);
+            retString = streamReader.ReadToEnd();
+            streamReader.Close();
+            myResponseStream.Close();
+            return retString;
         }
 
         public static string[] getTrustedSkinServer()

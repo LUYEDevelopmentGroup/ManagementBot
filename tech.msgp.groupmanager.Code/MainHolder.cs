@@ -431,5 +431,16 @@ namespace tech.msgp.groupmanager.Code
             }
             return "127.0.0.1";
         }
+
+        public static void DumpException(Exception err,string cato="EXCEPTION")
+        {
+            logger(cato, err.Message);
+            logger(cato, err.StackTrace);
+            if (err.InnerException != null)
+            {
+                logger(cato, "---- Inner Exception ----");
+                DumpException(err.InnerException, cato);
+            }
+        }
     }
 }
