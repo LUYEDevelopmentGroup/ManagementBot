@@ -23,32 +23,8 @@ namespace WatchDog
         static int port;
         static MiraiHttpSessionOptions op;
 
-        public static string _get_gzip(string url)
-        {
-            try
-            {
-                string retString = string.Empty;
-
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
-                request.ContentType = "application/json";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream stm = new System.IO.Compression.GZipStream(response.GetResponseStream(), System.IO.Compression.CompressionMode.Decompress);
-                StreamReader streamReader = new StreamReader(stm);
-                retString = streamReader.ReadToEnd();
-                streamReader.Close();
-                stm.Close();
-                return retString;
-            }
-            catch (Exception)
-            {
-                return "";
-            }
-        }
         static void Main(string[] args)
         {
-
-            var data = _get_gzip("http://check.uomg.com/api/qq/qlevel?token=4c78dff53217b19f6c8e8c6628f9e6d6&qq=1250542735");
             server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             server.Bind(new IPEndPoint(IPAddress.Loopback, 6001));//绑定端口号和IP
             StreamReader cfile = new StreamReader("config.json");
@@ -68,7 +44,6 @@ namespace WatchDog
             op = new MiraiHttpSessionOptions(host, port, key);
             session = new MiraiHttpSession();
             session.ConnectAsync(op, me_qq).Wait();
-            //MainHolder.session.GetFriendListAsync().Wait();
             session.DisconnectedEvt += Session_DisconnectedEvt; ;
 
 
