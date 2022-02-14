@@ -39,7 +39,7 @@ namespace CQ2IOT_HOST
             Thread.Sleep(5000);
 #endif
             DateTime start = DateTime.Now;
-            string ipv4_ip = "";//NetworkInfo.GetLocalIpAddress();
+            //string ipv4_ip = NetworkInfo.GetLocalIpAddress();
             MainHolder.logger = logger;
             bool booted = false;
             Exception exc = null;
