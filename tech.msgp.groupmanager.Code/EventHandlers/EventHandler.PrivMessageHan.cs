@@ -438,7 +438,8 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                                     break;
                                 case "#验证":
                                 case "#check":
-                                    int uid, len, level, tstamp;
+                                    long uid;
+                                    int len, level, tstamp;
                                     if (CrewKeyProcessor.checkToken(cmd[1], out uid, out len, out level, out tstamp))
                                     {
                                         string dpword = "??未知??";

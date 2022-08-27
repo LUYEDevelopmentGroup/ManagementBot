@@ -1,14 +1,13 @@
-﻿using Mirai.CSharp.Models;
+﻿using BiliApi;
+using BiliApi.BiliPrivMessage;
+using BiliveDanmakuAgent;
+using BiliveDanmakuAgent.Core;
+using Mirai.CSharp.HttpApi.Models.ChatMessages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BiliApi;
-using BiliApi.BiliPrivMessage;
-using BiliveDanmakuAgent.Core;
-using BiliveDanmakuAgent;
-using Mirai.CSharp.HttpApi.Models.ChatMessages;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -25,7 +24,7 @@ namespace tech.msgp.groupmanager.Code
         private int gold_coins = 0;
         private readonly int streamer_id = 5659864;
         private readonly Dictionary<string, string> crews = new Dictionary<string, string>();
-        private readonly List<int> viewerlist = new List<int>();
+        private readonly List<long> viewerlist = new List<long>();
         private string cookiestr;
 
         public BiliLiveRoom blr;
@@ -70,7 +69,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        private string doMark(int uid, int timestamp)
+        private string doMark(long uid, int timestamp)
         {
             int timeline = timestamp - lid;
             return DataBase.me.recLiveMark(uid, lid, timeline);
@@ -250,7 +249,7 @@ namespace tech.msgp.groupmanager.Code
                                     blr.sendDanmaku("无法标记：不在直播");
                                 }
                                 string id = doMark(e.Danmaku.UserID, TimestampHandler.GetTimeStamp(DateTime.Now));
-                                MainHolder.broadcaster.BroadcastToAdminGroup("放置了一个标记\n" + e.Danmaku.UserName + "#"+e.Danmaku.UserID+"\n标记点ID:"+id);
+                                MainHolder.broadcaster.BroadcastToAdminGroup("放置了一个标记\n" + e.Danmaku.UserName + "#" + e.Danmaku.UserID + "\n标记点ID:" + id);
                             }
                             break;
                         case MsgTypeEnum.GuardBuy:
@@ -311,6 +310,24 @@ namespace tech.msgp.groupmanager.Code
                                 }
                             }
                             DataBase.me.recUserBuyGuard(e.Danmaku.UserID, e.Danmaku.GiftCount, e.Danmaku.UserGuardLevel, lid);
+                            {
+                                var userlasttimeline = DataBase.me.GetLastestCrewspan(e.Danmaku.UserID);
+                                if (userlasttimeline.Duration == TimeSpan.Zero)
+                                {
+                                    DataBase.me.WriteCrewspan(new CrewLogItem
+                                    {
+                                        DataId = -1,
+                                        Start = DateTime.Now,
+                                        Duration = TimeSpan.FromDays(e.Danmaku.GiftCount * 30),
+                                        Uid = e.Danmaku.UserID
+                                    });
+                                }
+                                else
+                                {
+                                    userlasttimeline.Duration.Add(TimeSpan.FromDays(e.Danmaku.GiftCount * 30));
+                                    DataBase.me.WriteCrewspan(userlasttimeline);
+                                }
+                            }
                             //int timestamp = e.Danmaku;
                             //if (timestamp < 1600000000)
                             //{
@@ -405,9 +422,9 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public static int GetUserUID(JObject json)
+        public static long GetUserUID(JObject json)
         {
-            return json["info"][2].Value<int>(0);
+            return json["info"][2].Value<long>(0);
         }
 
         public static int GetUserMainSiteLevel(JObject json)
@@ -417,7 +434,7 @@ namespace tech.msgp.groupmanager.Code
             return user.level;
         }
 
-        public static bool SendKeyToCrewMember(int uid, int length, int crewlevel, int timestamp, string clevel, bool isnew)
+        public static bool SendKeyToCrewMember(long uid, int length, int crewlevel, int timestamp, string clevel, bool isnew)
         {
             string token = CrewKeyProcessor.getToken(uid, length, crewlevel, timestamp);
             PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);

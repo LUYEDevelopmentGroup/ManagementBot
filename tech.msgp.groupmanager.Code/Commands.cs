@@ -35,7 +35,7 @@ namespace tech.msgp.groupmanager.Code
             return list;
         }
 
-        public static void SendTicket(int uid, int level)
+        public static void SendTicket(long uid, int level)
         {
             return;
             Ticket a = new Ticket()
@@ -346,6 +346,12 @@ namespace tech.msgp.groupmanager.Code
                                     cr.checkCrews();
                                 }
                                 break;
+                            case "#crew_sync":
+                                {
+                                    var res = CrewChecker.FixCrewlistFromRawlog();
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "已从冗余记录系统找回" + res + "条丢失的舰长数据");
+                                }
+                                break;
                             case "#信任一次":
                             case "#trustonce":
                                 {
@@ -450,7 +456,8 @@ namespace tech.msgp.groupmanager.Code
                                 break;
                             case "#验证":
                             case "#check":
-                                int uid, len, level, tstamp;
+                                int len, level, tstamp;
+                                long uid;
                                 if (cmd[1] == null || cmd[1].Length < 2)
                                 {
                                     MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "指令出错×\n" +
@@ -787,6 +794,12 @@ namespace tech.msgp.groupmanager.Code
                                 "上次检查：" + SecondlyTask.laststat.ToString());
                                 SecondlyTask.laststat = DateTime.Now;
                                 MainHolder.MsgCount = 0;
+                                break;
+                            case "#regen_crew_timeline":
+                                {
+                                    int count = CrewChecker.RegenerateCrewTimeline();
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "已重整时间线：读入"+count+"条舰长记录");
+                                }
                                 break;
                             default:
                                 break;

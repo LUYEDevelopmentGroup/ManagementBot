@@ -18,7 +18,7 @@ namespace BroadTicketUtility
         public struct DataArea
         {
             public DateTime GenerateTime;
-            public int Uid;
+            public long Uid;
             public CrewLevel Level;
             public string SpecType;
             public Guid SerialNumber;

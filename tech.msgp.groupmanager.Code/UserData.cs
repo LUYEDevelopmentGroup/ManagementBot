@@ -9,9 +9,9 @@ namespace tech.msgp.groupmanager.Code
         public int biliUid;
         public UserData(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq }
             };
             List<int> vs = new List<int>
             {

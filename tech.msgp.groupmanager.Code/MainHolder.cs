@@ -249,7 +249,7 @@ namespace tech.msgp.groupmanager.Code
                 //B站登录完成，加载相关模块
                 try
                 {
-                    BiliUser.userlist = new Dictionary<int, BiliUser>();
+                    BiliUser.userlist = new Dictionary<long, BiliUser>();
                     dynamics = new List<BiliSpaceDynamic>();
                     string str = "";
                     foreach (Cookie c in bililogin.Cookies)

@@ -95,7 +95,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                 //Dictionary<long, GroupMemberInfo> infos = new Dictionary<long, GroupMemberInfo>();
                 Dictionary<long, string> qqname_index = new Dictionary<long, string>();
                 Dictionary<long, string> qqgname_index = new Dictionary<long, string>();
-                List<int> uid_tobebound = new List<int>();
+                List<long> uid_tobebound = new List<long>();
                 MainHolder.Logger.Warning("RMTAPI", "新连接");
                 //MainHolder.broadcaster.broadcastToAdminGroup("<DEBUG>[第三方连结API]\n一个新的节点试图连接，开启子MessageLoop");
                 while (serverthread_flag)

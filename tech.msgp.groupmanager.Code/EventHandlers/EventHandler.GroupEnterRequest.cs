@@ -30,7 +30,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                 case 1:
                     DataBase.me.removeUserTrustlist(e.FromQQ);
                     MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 受到单次信任，同意入群。\n该次信任已被移除。");
-                    goto case 9;//显式允许直接进入下一个case
+                    goto case 9;//显式允许直接进入最后一个case
                 case 0:
                     MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 受到永久信任，同意入群。");
                     goto case 9;//显式允许直接进入下一个case
@@ -38,6 +38,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
                     return;
             }
+            
             int qqlevel = -1;
             if (e.FromGroup != 964206367)
             {
@@ -88,18 +89,44 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             }
             else
             {
-                var groups = DataBase.me.whichGroupsAreTheUserIn(e.FromQQ);
-                if (groups.Count > 1)
                 {
-                    string gps = "";
-                    foreach (long group in groups)
+                    var groups = DataBase.me.whichGroupsAreTheUserIn(e.FromQQ);
+                    if (groups.Count > 1)
                     {
-                        gps += DataBase.me.getGroupName(group) + "(" + group + ")\n";
+                        string gps = "";
+                        foreach (long group in groups)
+                        {
+                            gps += DataBase.me.getGroupName(group) + "(" + group + ")\n";
+                        }
+                        MainHolder.broadcaster.BroadcastToAdminGroup(e.NickName + "(" + e.FromQQ + ") 加入群  " +
+                            e.FromGroupName + "(" + e.FromGroup + ") \n，自动拒绝。\n该用户同时加入以下群聊：\n" + gps);
+                        await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "已加入其它粉丝群 如有疑问请联系管理");
+                        return;
                     }
-                    MainHolder.broadcaster.BroadcastToAdminGroup(e.NickName + "(" + e.FromQQ + ") 加入群  " +
-                        e.FromGroupName + "(" + e.FromGroup + ") \n，自动拒绝。\n该用户同时加入以下群聊：\n" + gps);
-                    await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "已加入其它粉丝群 如有疑问请联系管理");
-                    return;
+                }
+                {
+                    var groups = DataBase.me.listGroup();
+                    string ins = "";
+                    foreach (var g in groups)
+                    {
+                        if (DataBase.me.isMEIgnoreGroup(g)) continue;
+                        var gmember = session.GetGroupMemberListAsync(g).Result;
+                        foreach (var m in gmember)
+                        {
+                            if (m.Id == e.FromQQ)
+                            {
+                                ins += m.Group.Name + "\n";
+                                break;
+                            }
+                        }
+                    }
+                    if (ins.Length > 1)
+                    {
+                        MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 已经加入以下群：\n"
+                            + ins + "\n拒绝。");
+                        await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您已加入其它平级粉丝群，不可重复加群");
+                        return;
+                    }
                 }
             }
 

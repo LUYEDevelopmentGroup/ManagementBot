@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -76,7 +77,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public bool execsql(string cmd_, Dictionary<string, string> args)
+        public bool execsql(string cmd_, Dictionary<string, object> args)
         {
             busy = true;
             lock (sql)
@@ -87,7 +88,7 @@ namespace tech.msgp.groupmanager.Code
                     MainHolder.Logger.Debug("sql", cmd_);
                     using (MySqlCommand cmd = new MySqlCommand(cmd_, sql))
                     {
-                        foreach (KeyValuePair<string, string> arg in args)
+                        foreach (KeyValuePair<string, object> arg in args)
                         {
                             cmd.Parameters.AddWithValue(arg.Key, arg.Value);
                         }
@@ -106,8 +107,14 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
+        public struct ArgPack
+        {
+            public string Name;
+            public Object Value;
+            public MySqlDbType Type;
+        }
 
-        public bool execsql(string cmd_, Dictionary<string, string> args, out int rolls)
+        public bool execsql(string cmd_, Dictionary<string, ArgPack> args)
         {
             busy = true;
             lock (sql)
@@ -118,7 +125,37 @@ namespace tech.msgp.groupmanager.Code
                     MainHolder.Logger.Debug("sql", cmd_);
                     using (MySqlCommand cmd = new MySqlCommand(cmd_, sql))
                     {
-                        foreach (KeyValuePair<string, string> arg in args)
+                        foreach (KeyValuePair<string, ArgPack> arg in args)
+                        {
+                            cmd.Parameters.Add(arg.Key, arg.Value.Type).Value = arg.Value.Value;
+                        }
+                        cmd.ExecuteNonQuery();
+                    }
+                    busy = false;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    MainHolder.Logger.Error("数据库", e.Message);
+                    connected = false;
+                    busy = false;
+                    return false;
+                }
+            }
+        }
+
+        public bool execsql(string cmd_, Dictionary<string, object> args, out int rolls)
+        {
+            busy = true;
+            lock (sql)
+            {
+                checkconnection();
+                try
+                {
+                    MainHolder.Logger.Debug("sql", cmd_);
+                    using (MySqlCommand cmd = new MySqlCommand(cmd_, sql))
+                    {
+                        foreach (KeyValuePair<string, object> arg in args)
                         {
                             cmd.Parameters.AddWithValue(arg.Key, arg.Value);
                         }
@@ -139,7 +176,7 @@ namespace tech.msgp.groupmanager.Code
         }
 
 
-        public int execsql_firstmatch(string sqlc, Dictionary<string, string> args)
+        public int execsql_firstmatch(string sqlc, Dictionary<string, object> args)
         {
             busy = true;
             lock (sql)
@@ -150,7 +187,7 @@ namespace tech.msgp.groupmanager.Code
                     int id = -1;
                     using (MySqlCommand cmd = new MySqlCommand(sqlc, sql))
                     {
-                        foreach (KeyValuePair<string, string> arg in args)
+                        foreach (KeyValuePair<string, object> arg in args)
                         {
                             cmd.Parameters.AddWithValue(arg.Key, arg.Value);
                         }
@@ -172,7 +209,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public List<List<string>> querysql(string cmd_, Dictionary<string, string> args, List<int> rolls)
+        public List<List<string>> querysql(string cmd_, Dictionary<string, object> args, List<int> rolls)
         {
             try
             {
@@ -182,7 +219,7 @@ namespace tech.msgp.groupmanager.Code
                     lock (sql)
                     {
                         checkconnection();
-                        foreach (KeyValuePair<string, string> arg in args)
+                        foreach (KeyValuePair<string, object> arg in args)
                         {
                             cmd.Parameters.AddWithValue(arg.Key, arg.Value);
                         }
@@ -214,7 +251,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public int count(string sql, Dictionary<string, string> args)
+        public int count(string sql, Dictionary<string, object> args)
         {
             checkconnection();
             List<int> rolls = new List<int>
@@ -245,10 +282,10 @@ namespace tech.msgp.groupmanager.Code
         /// <returns></returns>
         public bool recQQmsg(long sender, long group, string msg)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@sender", sender.ToString() },
-                { "@group", group.ToString() },
+                { "@sender", sender },
+                { "@group", group },
                 { "@msg", msg }
             };
             return execsql("INSERT INTO qq_msgrec (sender_qq, from_group, msg_text, type, time) VALUES (@sender, @group, @msg, 'text', NOW());", args);
@@ -263,10 +300,10 @@ namespace tech.msgp.groupmanager.Code
         /// <returns></returns>
         public bool recUserLeave(long kicked, long group, long? op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@kicked_qq", kicked.ToString() },
-                { "@group", group.ToString() }
+                { "@kicked_qq", kicked },
+                { "@group", group }
             };
             if (op != null)
             {
@@ -289,48 +326,62 @@ namespace tech.msgp.groupmanager.Code
         /// <returns></returns>
         public bool recUserSilenced(long user, long group, long op, int len)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", user.ToString() },
-                { "@group", group.ToString() },
-                { "@operator", op.ToString() },
-                { "@len", len.ToString() }
+                { "@qq", user },
+                { "@group", group },
+                { "@operator", op },
+                { "@len", len }
             };
             return execsql("INSERT INTO qq_silences (qq, from_group, oprator, time, len) VALUES (@qq, @group, @operator, NOW(), @len);", args);
         }
 
         public bool recUserSilenceRemoved(long user, long group, long op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", user.ToString() },
-                { "@group", group.ToString() },
-                { "@operator", op.ToString() }
+                { "@qq", user },
+                { "@group", group },
+                { "@operator", op }
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return execsql("UPDATE qq_silences SET removedby = @operator WHERE qq = @qq and from_group = @group ORDER BY time DESC limit 1;", args);
         }
-        public bool recUserBuyGuard(int uid, int len, int level, int lid)
+        public bool recUserBuyGuard(long uid, int len, int level, int lid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() },
-                { "@len", len.ToString() },
-                { "@level", level.ToString() },
-                { "@lid", lid.ToString() }
+                { "@uid", uid },
+                { "@len", len },
+                { "@level", level },
+                { "@lid", lid }
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return execsql("INSERT INTO bili_crew (uid, len, level, lid, timestamp) VALUES (@uid, @len, @level, @lid, NOW());", args);
         }
 
+        public bool recUserBuyGuard(long uid, int len, int level, int lid, DateTime time)
+        {
+            Dictionary<string, object> args = new Dictionary<string, object>
+            {
+                { "@uid", uid },
+                { "@len", len },
+                { "@level", level },
+                { "@lid", lid },
+                { "@time", time }
+            };
+            //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
+            return execsql("INSERT INTO bili_crew (uid, len, level, lid, timestamp) VALUES (@uid, @len, @level, @lid, @time);", args);
+        }
+
         public bool recManagementEvents(ManagementEvent me)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", me.id.ToString() },
+                { "@eventid", me.id},
                 { "@type", me.type },
-                { "@operator", me.op.ToString() },
-                { "@affected", me.affected.ToString() },
+                { "@operator", me.op},
+                { "@affected", me.affected},
                 { "@reason", me.reason }
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
@@ -339,11 +390,11 @@ namespace tech.msgp.groupmanager.Code
 
         public bool recTicket(ManagementEvent relatedEvent)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", relatedEvent.id.ToString() },
-                { "@operator", relatedEvent.op.ToString() },
-                { "@affected", relatedEvent.affected.ToString() }
+                { "@eventid", relatedEvent.id},
+                { "@operator", relatedEvent.op},
+                { "@affected", relatedEvent.affected}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return execsql("INSERT INTO management_tickets (evid, sender, gen_time, is_closed, avoid_op) VALUES (@eventid, @affected, NOW(), 0, @operator);", args);
@@ -351,9 +402,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool hasTicket(long evid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", evid.ToString() }
+                { "@eventid", evid}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return count("SELECT COUNT(*) from management_tickets where evid like @eventid ;", args) > 0;
@@ -361,9 +412,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool hasunTakenTicket(long evid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", evid.ToString() }
+                { "@eventid", evid}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return count("SELECT COUNT(*) from management_tickets where evid like @eventid and op is null;", args) > 0;
@@ -371,10 +422,10 @@ namespace tech.msgp.groupmanager.Code
 
         public bool takeTicket(long evid, long op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", evid.ToString() },
-                { "@op", op.ToString() }
+                { "@eventid", evid},
+                { "@op", op}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return execsql("UPDATE management_tickets SET op = @op WHERE evid = @eventid and op is null;", args);
@@ -382,10 +433,10 @@ namespace tech.msgp.groupmanager.Code
 
         public bool hasKickVoteFor(long qq, long g)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() },
-                { "@g", g.ToString() }
+                { "@qq", qq},
+                { "@g", g}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return count("SELECT COUNT(*) from votes where target like @qq and `group` like @g and result is null;", args) > 0;
@@ -393,9 +444,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool hasKickVote(long evid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@evid", evid.ToString() }
+                { "@evid", evid}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             return count("SELECT COUNT(*) from votes where evid like @evid and result is null;", args) > 0;
@@ -404,13 +455,13 @@ namespace tech.msgp.groupmanager.Code
         public long openKickVote(long op, long target, long group, int targetvotes)
         {
             long idd = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now);
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@op", op.ToString() },
-                { "@target", target.ToString() },
-                { "@group", group.ToString() },
-                { "@evid", idd.ToString() },
-                { "@tt", targetvotes.ToString() }
+                { "@op", op},
+                { "@target", target},
+                { "@group", group},
+                { "@evid", idd},
+                { "@tt", targetvotes}
             };
             //SELECT * from (SELECT * FROM A ORDER BY time) a GROUP BY a.id;
             if (execsql("INSERT INTO votes (evid, `trigger`, target, `group`, targetvotes) VALUES (@evid, @op, @target, @group, @tt);", args))
@@ -426,7 +477,7 @@ namespace tech.msgp.groupmanager.Code
         public bool scheduletask(long op, long target, long group, int targetvotes)
         {
             long idd = BiliApi.TimestampHandler.GetTimeStamp16(DateTime.Now);
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             args.Add("@op", op.ToString());
             args.Add("@target", target.ToString());
             args.Add("@group", group.ToString());
@@ -444,16 +495,16 @@ namespace tech.msgp.groupmanager.Code
 
         public int getVotesByVoteID(long id)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@evid", id.ToString() }
+                { "@evid", id}
             };
             return count("SELECT COUNT(*) from vote_records where evid like @evid;", args);
         }
 
         public List<Vote> listVotes()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0,
@@ -483,9 +534,9 @@ namespace tech.msgp.groupmanager.Code
 
         public Vote getVote(long evid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@evid", evid.ToString() }
+                { "@evid", evid}
             };
             List<int> vs = new List<int>
             {
@@ -522,29 +573,29 @@ namespace tech.msgp.groupmanager.Code
 
         public bool hasVotedFor(long evid, long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@evid", evid.ToString() },
-                { "@qq", qq.ToString() }
+                { "@evid", evid},
+                { "@qq", qq}
             };
             return count("SELECT COUNT(*) from vote_records where evid like @evid and qq like @qq;", args) > 0;
         }
 
         public bool voteFor(long evid, long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@evid", evid.ToString() },
-                { "@qq", qq.ToString() }
+                { "@evid", evid},
+                { "@qq", qq}
             };
             return execsql("INSERT INTO vote_records (evid, qq) VALUES (@evid, @qq);", args);
         }
 
         public ManagementEvent getManagementEventByID(long id)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@eventid", id.ToString() }
+                { "@eventid", id}
             };
             List<int> vs = new List<int>
             {
@@ -560,9 +611,9 @@ namespace tech.msgp.groupmanager.Code
 
         public string getCertificateName(long id, out string note)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", id.ToString() }
+                { "@qq", id}
             };
             List<int> vs = new List<int>
             {
@@ -581,9 +632,9 @@ namespace tech.msgp.groupmanager.Code
 
         public string getCertificateName(long id)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", id.ToString() }
+                { "@qq", id}
             };
             List<int> vs = new List<int>
             {
@@ -606,36 +657,36 @@ namespace tech.msgp.groupmanager.Code
         public int getBiliUserGuardCount(long uid)
         {
 
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() }
+                { "@uid", uid}
             };
             return count("SELECT COUNT(*) from bili_crew where uid like @uid ;", args);
         }
 
         public bool isUserBlacklisted(long user)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", user.ToString() }
+                { "@qq", user}
             };
             return (count("SELECT COUNT(*) from blacklist_q where qq like @qq ;", args) > 0);
         }
 
         public bool isUserOperator(long user)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", user.ToString() }
+                { "@qq", user}
             };
             return (count("SELECT COUNT(*) from qq_operator where qq like @qq ;", args) > 0);
         }
 
-        public bool isBiliUserExist(int user)
+        public bool isBiliUserExist(long user)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", user.ToString() }
+                { "@uid", user}
             };
             return (count("SELECT COUNT(*) from bili_users where uid like @uid ;", args) > 0);
         }
@@ -648,9 +699,9 @@ namespace tech.msgp.groupmanager.Code
                 return cache_is_admin_group[group];
             }
 
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@gpid", group.ToString() }
+                { "@gpid", group}
             };
             bool res = (count("SELECT COUNT(*) from qq_admingroup where group_id like @gpid ;", args) > 0);
             cache_is_admin_group.Add(group, res);
@@ -670,9 +721,9 @@ namespace tech.msgp.groupmanager.Code
                 return cache_is_ME_ignore_group[group];
             }
 
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@gpid", group.ToString() }
+                { "@gpid", group}
             };
             bool res = count("SELECT COUNT(*) from qq_ignoregroup where group_id like @gpid ;", args) > 0;
             cache_is_ME_ignore_group.Add(group, res);
@@ -681,7 +732,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<long> getCrewGroup()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<long> list = new List<long>();
             List<int> vs = new List<int>
             {
@@ -697,9 +748,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool isCrewGroup(long group)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@gpid", group.ToString() }
+                { "@gpid", group}
             };
             bool res = count("SELECT COUNT(*) from qq_crewgroup where gpid like @gpid ;", args) > 0;
             return res;
@@ -707,27 +758,27 @@ namespace tech.msgp.groupmanager.Code
 
         public bool isUserSilenced(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             return (count("SELECT COUNT(*) from qq_silences where qq like @qq ;", args) > 0);
         }
 
         public bool isUserQuitted(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             return (count("SELECT COUNT(*) from qq_leaves where qq like @qq and oprator is null ;", args) > 0);
         }
 
         public bool isUserKicked(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             return (count("SELECT COUNT(*) from qq_leaves where qq like @qq and oprator is not null ;", args) > 0);
         }
@@ -760,7 +811,7 @@ namespace tech.msgp.groupmanager.Code
 
         public CookieContainer getBiliLoginCookie()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>() { 0, 1, 2 };
             List<List<string>> re = DataBase.me.querysql("SELECT * from bili_logincookie;", args, vs);
             CookieContainer cc = new CookieContainer();
@@ -774,7 +825,7 @@ namespace tech.msgp.groupmanager.Code
 
         public CookieContainer updateBiliLoginCookie()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>() { 0, 1, 2 };
             List<List<string>> re = DataBase.me.querysql("SELECT * from bili_logincookie;", args, vs);
             CookieContainer cc = new CookieContainer();
@@ -793,7 +844,7 @@ namespace tech.msgp.groupmanager.Code
 
         public CookieContainer getBiliManagementAccLoginCookie()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>() { 0, 1, 2 };
             List<List<string>> re = DataBase.me.querysql("SELECT * from bili_logincookie_mana;", args, vs);
             CookieContainer cc = new CookieContainer();
@@ -813,7 +864,7 @@ namespace tech.msgp.groupmanager.Code
         /*
         public void setBiliLoginCookie(CookieContainer cc)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             args.Add("@qq", user.Id.ToString());
             args.Add("@group", group.Id.ToString());
             args.Add("@operator", op.Id.ToString());
@@ -825,9 +876,9 @@ namespace tech.msgp.groupmanager.Code
 
         public string getAdminName(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             List<int> vs = new List<int>
             {
@@ -841,9 +892,9 @@ namespace tech.msgp.groupmanager.Code
         {
             try
             {
-                Dictionary<string, string> args = new Dictionary<string, string>
+                Dictionary<string, object> args = new Dictionary<string, object>
                 {
-                    { "@qq", qq.ToString() }
+                    { "@qq", qq}
                 };
                 List<int> vs = new List<int>
                 {
@@ -867,9 +918,9 @@ namespace tech.msgp.groupmanager.Code
 
         public List<long> whichGroupsAreTheUserIn(long user, bool IgnoreMEIGroups = true)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", user.ToString() }
+                { "@qq", user}
             };
             List<int> vs = new List<int>
             {
@@ -890,9 +941,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool init_groupdata(long g)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@group", g.ToString() },
+                { "@group", g},
                 //args.Add("@gname", g.GetGroupInfo().Name);
                 { "@gname", "unknown" }
             };
@@ -904,18 +955,18 @@ namespace tech.msgp.groupmanager.Code
 
         public bool addBiliPending(long uid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() }
+                { "@uid", uid}
             };
             return execsql("INSERT INTO bili_qqbound (uid, type) VALUES (@uid,1);", args);
         }
 
         public bool isBiliPending(long uid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() }
+                { "@uid", uid}
             };
             return (count("SELECT COUNT(*) from bili_qqbound where uid like @uid and qq is null;", args) > 0);
         }
@@ -924,10 +975,10 @@ namespace tech.msgp.groupmanager.Code
         {
             try
             {
-                Dictionary<string, string> args = new Dictionary<string, string>
+                Dictionary<string, object> args = new Dictionary<string, object>
                 {
-                    { "@uid", uid.ToString() },
-                    { "@qq", qq.ToString() }
+                    { "@uid", uid},
+                    { "@qq", qq}
                 };
                 execsql("UPDATE bili_qqbound SET qq = @qq WHERE uid = @uid;", args, out int a);
                 return (a > 0);
@@ -941,18 +992,18 @@ namespace tech.msgp.groupmanager.Code
 
         public bool isUserBoundedQQ(long uid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() }
+                { "@uid", uid}
             };
             return (count("SELECT COUNT(*) from bili_qqbound where uid like @uid and qq is not null;", args) > 0);
         }
 
         public long getUserBoundedQQ(long uid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() }
+                { "@uid", uid}
             };
             List<int> vs = new List<int>
             {
@@ -970,9 +1021,9 @@ namespace tech.msgp.groupmanager.Code
 
         public bool isUserBoundedUID(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             return (count("SELECT COUNT(*) from bili_qqbound where qq like @qq and uid is not null;", args) > 0);
         }
@@ -983,9 +1034,9 @@ namespace tech.msgp.groupmanager.Code
         {
             try
             {
-                Dictionary<string, string> args = new Dictionary<string, string>
+                Dictionary<string, object> args = new Dictionary<string, object>
                 {
-                    { "@qq", qq.ToString() }
+                    { "@qq", qq}
                 };
                 List<int> vs = new List<int>
                 {
@@ -1008,14 +1059,14 @@ namespace tech.msgp.groupmanager.Code
 
         public bool saveMessageGroup(string fname, string fresid, int tsum, int flag, int serviceID, int fsize)//qq_msgsave
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
                 { "@fname", fname },
                 { "@fresid", fresid },
-                { "@tsum", tsum.ToString() },
-                { "@flag", flag.ToString() },
-                { "@service", serviceID.ToString() },
-                { "@fsize", fsize.ToString() }
+                { "@tsum", tsum},
+                { "@flag", flag},
+                { "@service", serviceID},
+                { "@fsize", fsize}
             };
             return execsql("INSERT INTO qq_msgsave(m_fileName, m_resid, tSum, flag, serviceID, m_fileSize) VALUES(@fname, @fresid, @tsum, @flag, @service, @fsize); ", args);
         }
@@ -1023,7 +1074,7 @@ namespace tech.msgp.groupmanager.Code
         public void getMessageGroup(string fname, out string fresid, out int tsum, out int flag, out int serviceID, out int fsize)//qq_msgsave
         {
             List<int> vs = new List<int>() { 1, 2, 3, 4, 5 };
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
                 { "@fname", fname }
             };
@@ -1038,19 +1089,19 @@ namespace tech.msgp.groupmanager.Code
 
         public bool update_groupmembers(long g)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@group", g.ToString() }
+                { "@group", g}
             };
             execsql("delete from userdata where from_group = @group;", args);//清除之前的成员列表
             IGroupMemberInfo[] members = MainHolder.session.GetGroupMemberListAsync(g).Result;//抓群成员
             foreach (IGroupMemberInfo minfo in members)//一个一个放进数据库
             {
-                args = new Dictionary<string, string>
+                args = new Dictionary<string, object>
                 {
-                    { "@group", g.ToString() },
-                    { "@qq", minfo.Id.ToString() },
-                    { "@fname", minfo.Name.ToString() }
+                    { "@group", g},
+                    { "@qq", minfo.Id},
+                    { "@fname", minfo.Name}
                 };
                 execsql("INSERT INTO userdata (qq, friendly_name, from_group, adddate) VALUES (@qq, @fname, @group, NOW());", args);
             }
@@ -1059,10 +1110,10 @@ namespace tech.msgp.groupmanager.Code
 
         public bool addUser(long q, long g, string fname)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@group", g.ToString() },
-                { "@qq", q.ToString() },
+                { "@group", g},
+                { "@qq", q},
                 { "@fname", fname }
             };
             execsql("delete from userdata where qq = @qq and from_group = @group;", args);//清除这个成员(如果有)
@@ -1071,32 +1122,32 @@ namespace tech.msgp.groupmanager.Code
 
         public bool removeUser(long q, long g)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@group", g.ToString() },
-                { "@qq", q.ToString() }
+                { "@group", g},
+                { "@qq", q}
             };
             return execsql("delete from userdata where qq = @qq and from_group = @group;", args);//清除这个成员(如果有)
         }
 
         public bool addUserBlklist(long q, string reason, long op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", q.ToString() },
+                { "@qq", q},
                 { "@reason", reason },
-                { "@op", op.ToString() }
+                { "@op", op}
             };
             execsql("delete from blacklist_q where qq = @qq;", args);//清除这个记录(如果有)
             return execsql("INSERT INTO blacklist_q (qq, reason, operator, ban_time) VALUES (@qq, @reason, @op, NOW());", args);
         }
 
-        public bool setBiliPermBan(int uid, long op)
+        public bool setBiliPermBan(long uid, long op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() },
-                { "@op", op.ToString() }
+                { "@uid", uid},
+                { "@op", op}
             };
             execsql("UPDATE bili_bans SET op = @op WHERE uid = @uid;", args, out int a);
             if (a < 1)
@@ -1108,20 +1159,20 @@ namespace tech.msgp.groupmanager.Code
 
         public bool addUserTrustlist(long q, bool once, long op)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", q.ToString() },
+                { "@qq", q},
                 { "@isonce", (once) ? "1" : "0" },
-                { "@op", op.ToString() }
+                { "@op", op}
             };
             execsql("delete from qq_trusts where qq = @qq;", args);//清除这个记录(如果有)
             return execsql("INSERT INTO qq_trusts (qq, isonce, operator, timestamp) VALUES (@qq, @isonce, @op, NOW());", args);
         }
         public bool removeUserTrustlist(long q)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", q.ToString() }
+                { "@qq", q}
             };
             execsql("UPDATE qq_trusts SET isonce = -1 WHERE qq = @qq;", args, out int a);
             return (a > 0);
@@ -1134,9 +1185,9 @@ namespace tech.msgp.groupmanager.Code
         /// <returns>-1 = 不信任 | 0 = 永久信任 | 1 = 信任一次</returns>
         public int isUserTrusted(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             if (count("SELECT COUNT(*) from qq_trusts where qq like @qq ;", args) > 0)
             {
@@ -1155,9 +1206,9 @@ namespace tech.msgp.groupmanager.Code
 
         public int getUserTrustOperator(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             if (count("SELECT COUNT(*) from qq_trusts where qq like @qq ;", args) > 0)
             {
@@ -1176,7 +1227,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<int> listUnachievedCount()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1194,23 +1245,23 @@ namespace tech.msgp.groupmanager.Code
             return group;
         }
 
-        private Dictionary<string, string> bwords_tmp;
+        private Dictionary<string, object> bwords_tmp;
 
-        public Dictionary<string, string> listBanWords()
+        public Dictionary<string, object> listBanWords()
         {
             if (bwords_tmp != null)
             {
                 return bwords_tmp;
             }
 
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1,
                 2
             };
             List<List<string>> re = querysql("SELECT * from badwords;", args, vs);
-            Dictionary<string, string> group = new Dictionary<string, string>();
+            Dictionary<string, object> group = new Dictionary<string, object>();
             foreach (List<string> line in re)
             {
                 if (!group.ContainsKey(line[0]))
@@ -1224,7 +1275,7 @@ namespace tech.msgp.groupmanager.Code
 
         public Dictionary<int, long> listCrewBound()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0,
@@ -1239,25 +1290,25 @@ namespace tech.msgp.groupmanager.Code
             return group;
         }
 
-        public List<int> listCrewunBoundUID()
+        public List<long> listCrewunBoundUID()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0
             };
             List<List<string>> re = querysql("SELECT * from bili_qqbound where qq is null and type like 1;", args, vs);
-            List<int> group = new List<int>();
+            List<long> group = new List<long>();
             foreach (List<string> line in re)
             {
-                group.Add(int.Parse(line[0]));
+                group.Add(long.Parse(line[0]));
             }
             return group;
         }
 
         public List<CrewMember> listCrewMembers()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1,
@@ -1272,7 +1323,7 @@ namespace tech.msgp.groupmanager.Code
             {
                 CrewMember c = new CrewMember()
                 {
-                    uid = int.Parse(line[0]),
+                    uid = long.Parse(line[0]),
                     len_days = int.Parse(line[1]) * 30,
                     buytime = DateTime.Parse(line[2]),
                     lid = int.Parse(line[4]),
@@ -1280,12 +1331,13 @@ namespace tech.msgp.groupmanager.Code
                 };
                 group.Add(c);
             }
+            group.Sort((x, y) => x.buytime.CompareTo(y.buytime));
             return group;
         }
 
         public class CrewMember : IComparable
         {
-            public int uid;
+            public long uid;
             public int len_days;
             public DateTime buytime;
             public int lid;
@@ -1307,7 +1359,7 @@ namespace tech.msgp.groupmanager.Code
 
 
 
-        public int setCountRiched(int count, int latest_fan)
+        public int setCountReached(int count, long latest_fan)
         {
             List<int> ur_fancount = listUnachievedCount();
             int fcr = int.MaxValue;
@@ -1322,10 +1374,10 @@ namespace tech.msgp.groupmanager.Code
                     break;
                 }
             }
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@fanuid", latest_fan.ToString() },
-                { "@fc", fcr.ToString() }
+                { "@fanuid", latest_fan},
+                { "@fc", fcr}
             };
             execsql("UPDATE bili_fans SET achieved_time = Now(), done = 1, latest_fan_uid = @fanuid WHERE fancount <= @fc and latest_fan_uid is null;", args);
             return fcr;
@@ -1333,16 +1385,16 @@ namespace tech.msgp.groupmanager.Code
 
         public bool removeUserBlklist(long q)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", q.ToString() }
+                { "@qq", q}
             };
             return execsql("delete from blacklist_q where qq = @qq;", args);
         }
 
         public List<long> listUser()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1360,19 +1412,19 @@ namespace tech.msgp.groupmanager.Code
             return group;
         }
 
-        public List<KeyValuePair<string, string>> listBannedPic()
+        public List<KeyValuePair<string, object>> listBannedPic()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0,
                 1
             };
             List<List<string>> re = querysql("SELECT * from qq_bannedpictures;", args, vs);
-            List<KeyValuePair<string, string>> group = new List<KeyValuePair<string, string>>();
+            List<KeyValuePair<string, object>> group = new List<KeyValuePair<string, object>>();
             foreach (List<string> line in re)
             {
-                KeyValuePair<string, string> data = new KeyValuePair<string, string>(line[0], line[1]);
+                KeyValuePair<string, object> data = new KeyValuePair<string, object>(line[0], line[1]);
                 if (!group.Contains(data))
                 {
                     group.Add(data);
@@ -1383,7 +1435,7 @@ namespace tech.msgp.groupmanager.Code
 
         public bool banPick(string hash, string uuhash, string note)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
                 { "@hash", hash },
                 { "@note", note },
@@ -1394,7 +1446,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<string> listBiliveBanwords()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1413,7 +1465,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<long> listGroup()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1433,7 +1485,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<long> listAdminGroup()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1484,9 +1536,9 @@ namespace tech.msgp.groupmanager.Code
                 return group_name_cache[group];
             }
 
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@id", group.ToString() }
+                { "@id", group}
             };
             List<int> vs = new List<int>
             {
@@ -1502,23 +1554,23 @@ namespace tech.msgp.groupmanager.Code
             return re[0][0];
         }
 
-        public bool recBLiveDanmaku(int uid, string message, int timestamp, int lid)
+        public bool recBLiveDanmaku(long uid, string message, int timestamp, int lid)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() },
+                { "@uid", uid},
                 { "@msg", message },
-                { "@timestamp", timestamp.ToString() },
-                { "@lid", lid.ToString() }
+                { "@timestamp", timestamp},
+                { "@lid", lid}
             };
             return execsql("INSERT INTO live_danmakurec (sender_uid, send_msg, raw_timestamp, lid) VALUES (@uid, @msg, @timestamp, @lid);", args);
         }
 
         public bool recBLive(int lid, string title)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() },
+                { "@lid", lid},
                 { "@title", title }
             };
             return execsql("INSERT INTO bili_lives (lid, livetime, livetitle) VALUES (@lid, Now(), @title);", args);
@@ -1526,23 +1578,23 @@ namespace tech.msgp.groupmanager.Code
 
         public bool recBLiveUpdate(int lid, int newviersers, int act_viewers, int peakviewers = 0, int selvercoins = 0, int goldcoins = 0)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() },
-                { "@nvs", newviersers.ToString() },
-                { "@pvs", peakviewers.ToString() },
-                { "@scn", selvercoins.ToString() },
-                { "@gcn", goldcoins.ToString() },
-                { "@act", act_viewers.ToString() }
+                { "@lid", lid},
+                { "@nvs", newviersers},
+                { "@pvs", peakviewers},
+                { "@scn", selvercoins},
+                { "@gcn", goldcoins},
+                { "@act", act_viewers}
             };
             return execsql("UPDATE bili_lives SET newviewers = @nvs, peakviewers = @pvs, gold_coins = @gcn, selver_coins = @scn, activeviewers = @act WHERE lid = @lid;", args);
         }
 
         public void getBLiveData(int lid, out int newcomers, out int gcoins, out int scoins)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() }
+                { "@lid", lid}
             };
             List<int> vs = new List<int>
             {
@@ -1559,53 +1611,53 @@ namespace tech.msgp.groupmanager.Code
 
         public bool recBLiveEnd(int lid, int newviersers, int act_viewers, int peakviewers = 0, int selvercoins = 0, int goldcoins = 0)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() },
-                { "@nvs", newviersers.ToString() },
-                { "@pvs", peakviewers.ToString() },
-                { "@scn", selvercoins.ToString() },
-                { "@gcn", goldcoins.ToString() },
-                { "@act", act_viewers.ToString() }
+                { "@lid", lid},
+                { "@nvs", newviersers},
+                { "@pvs", peakviewers},
+                { "@scn", selvercoins},
+                { "@gcn", goldcoins},
+                { "@act", act_viewers}
             };
             return execsql("UPDATE bili_lives SET liveend = Now(), newviewers = @nvs, peakviewers = @pvs, gold_coins = @gcn, selver_coins = @scn, activeviewers = @act WHERE lid = @lid;", args);
         }
 
-        public bool recBGift(int lid, int uid, string type, int amount, string name, int cost = 0)
+        public bool recBGift(int lid, long uid, string type, int amount, string name, int cost = 0)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() },
-                { "@uid", uid.ToString() },
+                { "@lid", lid},
+                { "@uid", uid},
                 { "@type", type },
-                { "@amount", amount.ToString() },
-                { "@name", name.ToString() }
+                { "@amount", amount},
+                { "@name", name}
             };
             return execsql("INSERT INTO bili_gift (lid, uid, type, amount, name, etime) VALUES (@lid, @uid, @type, @amount, @name, NOW());", args);
         }
 
-        public bool recBLiveBan(int lid, int uid, int opuid = 0)
+        public bool recBLiveBan(int lid, long uid, int opuid = 0)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@lid", lid.ToString() },
-                { "@uid", uid.ToString() },
-                { "@op", opuid.ToString() }
+                { "@lid", lid},
+                { "@uid", uid},
+                { "@op", opuid}
             };
             return execsql("INSERT INTO bili_bans (lid, uid, op, eventtime) VALUES (@lid, @uid, @op, NOW());", args);
         }
 
-        public bool addBiliUser(int uid, string uname)
+        public bool addBiliUser(long uid, string uname)
         {
             if (isBiliUserExist(uid))
             {
                 return true;
             }
 
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() },
-                { "@name", uname.ToString() }
+                { "@uid", uid},
+                { "@name", uname}
             };
             execsql("delete from bili_users where uid = @uid;", args);//清除这个成员(如果有)
             return execsql("INSERT INTO bili_users (uid, uname, addtime) VALUES (@uid, @name, NOW());", args);
@@ -1615,9 +1667,9 @@ namespace tech.msgp.groupmanager.Code
 
         public double getOPWeigh(long qq, bool cache = true)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             List<int> vs = new List<int>
             {
@@ -1637,12 +1689,12 @@ namespace tech.msgp.groupmanager.Code
         public bool recQQWarn(long qq, long op, string note)
         {
             double weigh = 1;
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() },
-                { "@op", op.ToString() },
-                { "@weigh", weigh.ToString() },
-                { "@note", note.ToString() }
+                { "@qq", qq},
+                { "@op", op},
+                { "@weigh", weigh},
+                { "@note", note}
             };
             return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note, @weigh, NOW());", args);
         }
@@ -1650,21 +1702,21 @@ namespace tech.msgp.groupmanager.Code
         public bool recQQWarn(long qq, long op, double weigh, string note)
         {
             double ww = weigh;
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() },
-                { "@op", op.ToString() },
-                { "@weigh", ww.ToString() },
-                { "@note", note.ToString() }
+                { "@qq", qq},
+                { "@op", op},
+                { "@weigh", ww},
+                { "@note", note}
             };
             return execsql("INSERT INTO qq_warns (qq, operator, note, weigh, timestamp) VALUES (@qq, @op, @note, @weigh, NOW());", args);
         }
 
         public double getQQWarnCount(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() }
+                { "@qq", qq}
             };
             List<int> vs = new List<int>
             {
@@ -1682,7 +1734,7 @@ namespace tech.msgp.groupmanager.Code
 
         public List<Warn> listWarnsQQ(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0,
@@ -1714,7 +1766,7 @@ namespace tech.msgp.groupmanager.Code
 
         public Warn getWarnByID(int id)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 0,
@@ -1750,7 +1802,7 @@ namespace tech.msgp.groupmanager.Code
         /// <returns></returns>
         public List<int> listPermbans()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1
@@ -1771,16 +1823,16 @@ namespace tech.msgp.groupmanager.Code
         /// <param name="lid"></param>
         /// <param name="timeline"></param>
         /// <returns></returns>
-        public string recLiveMark(int uid, int lid, int timeline)
+        public string recLiveMark(long uid, int lid, int timeline)
         {
             string uuid = Guid.NewGuid().ToString();
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@uid", uid.ToString() },
+                { "@uid", uid},
                 { "@pointid", uuid },
-                { "@lid", lid.ToString() },
-                { "@timeline", timeline.ToString() },
-                { "@pointtime", (timeline/60).ToString() },
+                { "@lid", lid},
+                { "@timeline", timeline},
+                { "@pointtime", (timeline/60)},
             };
             execsql("INSERT INTO bili_livemarks (uid, pointid, lid, timeline, pointtime) VALUES (@uid, @pointid, @lid, @timeline, @pointtime);", args);
             return uuid;
@@ -1793,7 +1845,7 @@ namespace tech.msgp.groupmanager.Code
         /// <returns></returns>
         public int getQQLevelTemp(long qq)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
+            Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
             {
                 1,
@@ -1806,7 +1858,7 @@ namespace tech.msgp.groupmanager.Code
             foreach (List<string> line in re)
             {
                 var lastupdate = DateTime.Parse(line[1]);
-                if ((DateTime.Now - lastupdate).Days < 30)
+                if ((DateTime.Now - lastupdate).Days < 1)
                     return int.Parse(line[0]);
             }
             return -1;
@@ -1819,10 +1871,10 @@ namespace tech.msgp.groupmanager.Code
         /// <param name="level"></param>
         public void setQQLevelTemp(long qq, int level)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>
+            Dictionary<string, object> args = new Dictionary<string, object>
             {
-                { "@qq", qq.ToString() },
-                { "@level", level.ToString() },
+                { "@qq", qq},
+                { "@level", level},
             };
             execsql("INSERT INTO qqlevel_tmp(qq,level,lastupdate) VALUE(@qq,@level,NOW()) ON DUPLICATE KEY UPDATE level= @level,lastupdate=NOW()", args);
         }
@@ -1835,9 +1887,119 @@ namespace tech.msgp.groupmanager.Code
         public bool IsGroupRelated(long group)
         {
             return (this.isAdminGroup(group) || this.isCrewGroup(group) ||
-                this.isMEIgnoreGroup(group) || !this.getGroupName(group).Equals("UNDEFINED_IN_DATABASE")) ;
+                this.isMEIgnoreGroup(group) || !this.getGroupName(group).Equals("UNDEFINED_IN_DATABASE"));
+        }
+
+        /// <summary>
+        /// 获取指定UID的最后一段在舰时间
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <returns></returns>
+        public CrewLogItem GetLastestCrewspan(long uid)
+        {
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            List<int> vs = new List<int>
+            {
+                0,
+                2,
+                3
+            };
+
+            args.Add("@uid", uid.ToString());
+
+            List<List<string>> re = querysql("SELECT * from bili_crewtimeline where uid = @uid ORDER BY id DESC LIMIT 0,1 ;", args, vs);
+            if (re.Count == 0) return new CrewLogItem() { Duration = TimeSpan.Zero };
+            var item = re.LastOrDefault();
+            return new CrewLogItem
+            {
+                DataId = long.Parse(item[0]),
+                Uid = uid,
+                Start = DateTime.Parse(item[1]),
+                End = DateTime.Parse(item[2])
+            };
+        }
+
+        /// <summary>
+        /// 更新舰长时间轴信息
+        /// </summary>
+        /// <param name="data"></param>
+        public void WriteCrewspan(CrewLogItem data)
+        {
+            string command = "";
+            Dictionary<string, ArgPack> args;
+            if (data.DataId >= 0)
+            {
+                command =
+                   "INSERT INTO bili_crewtimeline(id,start,end,duration) VALUE(@dataid,@start,@end,@duration) ON DUPLICATE KEY UPDATE start=@start, end=@end, duration=@duration;";
+                args = new Dictionary<string, ArgPack>
+                {
+                    { "@dataid", new ArgPack{Type=MySqlDbType.Int32,Value=data.DataId} },
+                    { "@start", new ArgPack{Type=MySqlDbType.DateTime,Value=(data.Start)} },
+                    { "@end", new ArgPack{Type=MySqlDbType.DateTime,Value=(data.End)} },
+                    { "@duration", new ArgPack{Type=MySqlDbType.Int32,Value=(data.Duration.TotalDays)} }
+                };
+            }
+            else
+            {
+                command =
+                   "INSERT INTO bili_crewtimeline(uid,start,end,duration) VALUE(@uid,@start,@end,@duration);";
+                args = new Dictionary<string, ArgPack>
+                {
+                    { "@uid", new ArgPack{Type=MySqlDbType.Int64,Value=(data.Uid)} },
+                    { "@start", new ArgPack{Type=MySqlDbType.DateTime,Value=(data.Start)} },
+                    { "@end", new ArgPack{Type=MySqlDbType.DateTime,Value=(data.End)} },
+                    { "@duration", new ArgPack{Type=MySqlDbType.Int32,Value=(data.Duration.TotalDays)} }
+                };
+            }
+            execsql(command, args);
+        }
+
+        public List<CrewLevelLogItem> DumpCrewDataFromRedundancy()
+        {
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            List<int> vs = new List<int>
+            {
+                1,
+                2,
+                3,
+                4
+            };
+            List<List<string>> re = querysql("SELECT * from crewlog;", args, vs);
+            List<CrewLevelLogItem> group = new List<CrewLevelLogItem>();
+            foreach (List<string> line in re)
+            {
+                CrewLevelLogItem c = new CrewLevelLogItem()
+                {
+                    Uid = long.Parse(line[0]),
+                    Level = int.Parse(line[1]),
+                    Duration = TimeSpan.FromDays(int.Parse(line[2]) * 30),
+                    Start = GetDateTime(long.Parse(line[3]))
+                };
+                group.Add(c);
+            }
+            return group;
+        }
+
+        public void ClearCrewTimelineData()
+        {
+            execsql("truncate table bili_crewtimeline;", new Dictionary<string, object>());
         }
         #endregion
+
+        public static string DatetimeConvert(DateTime time)
+        {
+            return time.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        public static DateTime GetDateTime(long strLongTime)
+        {
+            long begtime = strLongTime * 10000000;//100毫微秒为单位,textBox1.text需要转化的int日期
+            DateTime dt_1970 = new DateTime(1970, 1, 1, 8, 0, 0);
+            long tricks_1970 = dt_1970.Ticks;//1970年1月1日刻度
+            long time_tricks = tricks_1970 + begtime;//日志日期刻度
+            DateTime dt = new DateTime(time_tricks);//转化为DateTim
+            return dt;
+        }
     }
     public class Warn
     {

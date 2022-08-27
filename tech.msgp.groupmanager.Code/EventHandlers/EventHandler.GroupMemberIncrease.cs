@@ -64,7 +64,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                         PrivMessageSession psession = PrivMessageSession.openSessionWith((int)uid, MainHolder.biliapi);
                         BiliApi.BiliUser bu = BiliApi.BiliUser.getUser((int)uid, MainHolder.biliapi);
                         CrewChecker cr = new CrewChecker();
-                        Dictionary<int, CrewMember> crewlist = cr.getAllCrewMembers();
+                        Dictionary<long, CrewMember> crewlist = cr.getAllCrewMembers();
                         CrewMember thismember = crewlist[(int)uid];
                         string dpword = "";
                         switch (thismember.level)

@@ -8,7 +8,7 @@ namespace tech.msgp.groupmanager.Code
 {
     internal static class CrewKeyProcessor
     {
-        public static string getToken(int uid, int length, int crewlevel, int timestamp)
+        public static string getToken(long uid, int length, int crewlevel, int timestamp)
         {
             string intake = genIntake(uid, length, crewlevel, timestamp);
             string key = Sha1(intake);
@@ -31,13 +31,13 @@ namespace tech.msgp.groupmanager.Code
         /// <param name="length">上舰时长</param>
         /// <param name="crewlevel">船员等级</param>
         /// <param name="timestamp">时间戳</param>
-        public static bool checkToken(string token, out int uid, out int length, out int crewlevel, out int timestamp)
+        public static bool checkToken(string token, out long uid, out int length, out int crewlevel, out int timestamp)
         {
             string jsondata = DecodeBase64("utf-8", token);
             JObject json = (JObject)JsonConvert.DeserializeObject(jsondata);
             if (json != null)
             {
-                uid = json.Value<int>("u");
+                uid = json.Value<long>("u");
                 length = json.Value<int>("l");
                 crewlevel = json.Value<int>("c");
                 timestamp = json.Value<int>("t");
@@ -55,7 +55,7 @@ namespace tech.msgp.groupmanager.Code
             }
         }
 
-        public static string genIntake(int uid, int len, int clevel, int timestamp)
+        public static string genIntake(long uid, int len, int clevel, int timestamp)
         {
             return "鹿!野?" + clevel + "的$舰%" + len + "长#密&钥$盐" + timestamp + "LuYeS" + uid + "hi#GeXiaoNaiGou?";
         }

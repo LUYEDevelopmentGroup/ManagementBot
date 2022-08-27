@@ -24,7 +24,7 @@ namespace tech.msgp.groupmanager.Code
                 listened_uids = MainHolder.BiliWatchUIDs;
                 foreach (int uid in listened_uids)
                 {
-                    MainHolder.dynamics.Add(new BiliApi.BiliSpaceDynamic(uid,MainHolder.bililogin));
+                    MainHolder.dynamics.Add(new BiliApi.BiliSpaceDynamic(uid, MainHolder.bililogin));
                 }
                 MainHolder.pool.submitWorkload(run);
             }
@@ -47,7 +47,7 @@ namespace tech.msgp.groupmanager.Code
                         {
                             d = dyn.getLatest();
                         }
-                        catch(Exception err)
+                        catch (Exception err)
                         {
                             MainHolder.DumpException(err, "DynChecker");
                             continue;
@@ -67,6 +67,11 @@ namespace tech.msgp.groupmanager.Code
                                 case 1://普通动态
                                 case 2://包含图片的动态
                                 case 4://？出现在转发和普通动态
+                                    if (dc.card_origin["author"].Value<long>("mid") != dyn.uid)
+                                    {
+                                        MainHolder.broadcaster.BroadcastToAdminGroup("[转发他人动态]\nUP主:" + dc.sender.name + "\n原UP主：" + dc.card_origin["author"].Value<string>("name") + "\nhttps://t.bilibili.com/" + dc.dynid + "\n<按策略不推送>");
+                                        break;
+                                    }
                                     if (isLivedanmakuAndBroadcast(dc))
                                     {
                                         break; //如果是转发的直播，分出去单独处理
@@ -91,8 +96,8 @@ namespace tech.msgp.groupmanager.Code
                     }
                 }
                 try
-                {//检测鹿野粉丝数
-                    if(MainHolder.enableNativeFuncs) check_fans();
+                {//检测鹿野
+                        if(MainHolder.enableNativeFuncs) check_fans();
                 }
                 catch (Exception err)
                 {
@@ -110,8 +115,8 @@ namespace tech.msgp.groupmanager.Code
                 if (jb1.Value<int>("code") == 0)
                 {
                     int fans = jb1["data"].Value<int>("follower");
-                    if ((!DataBase.me.isCountAlreadyRiched(fans)) || (debug))//新达成或在debug
-                    {
+                    if ((!DataBase.me.isCountAlreadyRiched(fans)) || (debug))//新达成或在de
+                       {
                         List<int> ur_fancount = DataBase.me.listUnachievedCount();
                         int fcr = int.MaxValue;
                         foreach (int fc in ur_fancount)
@@ -141,7 +146,7 @@ namespace tech.msgp.groupmanager.Code
                             {
                                 if (!debug)
                                 {
-                                    int achieved_count = DataBase.me.setCountRiched(fans, jb2["data"]["list"][0].Value<int>("mid"));
+                                    int achieved_count = DataBase.me.setCountReached(fans, jb2["data"]["list"][0].Value<int>("mid"));
                                     MainHolder.broadcaster.BroadcastToAllGroup("【里程碑！】\n成功达成<" + achieved_count + ">粉！\n第" + achieved_count + "粉：" + jb2["data"]["list"][index].Value<string>("uname"));
                                 }
                                 else
