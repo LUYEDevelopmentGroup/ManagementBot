@@ -973,6 +973,10 @@ namespace tech.msgp.groupmanager.Code
 
         public bool boundBiliWithQQ(long uid, long qq)
         {
+            if (!isBiliPending(uid))
+            {
+                addBiliPending(uid);
+            }
             try
             {
                 Dictionary<string, object> args = new Dictionary<string, object>

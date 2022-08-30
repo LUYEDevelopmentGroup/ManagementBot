@@ -637,8 +637,8 @@ namespace tech.msgp.groupmanager.Code
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[调试 - 阻断私信处理]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
                                 break;
                             case "#boundqq":
-                                DataBase.me.boundBiliWithQQ(long.Parse(cmd[1]), long.Parse(cmd[2]));
-                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[手动QQ绑定]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
+                                var result = DataBase.me.boundBiliWithQQ(long.Parse(cmd[1]), long.Parse(cmd[2]));
+                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[手动QQ绑定]\n" + (result ? "OK" : "不OK"));
                                 break;
                             /*
                         case "#cape":
