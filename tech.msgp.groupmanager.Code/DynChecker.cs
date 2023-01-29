@@ -56,37 +56,48 @@ namespace tech.msgp.groupmanager.Code
                         dyn.refresh(d);
                         foreach (Dyncard dc in d)
                         {
-                            if ((DateTime.Now - dc.sendtime).TotalSeconds > 30)
+                            try
                             {
-                                continue;
-                            }
-                            bool atall = (DateTime.Now.Hour < 23 && DateTime.Now.Hour > 6);
-                            atall &= !dc.dynamic.Contains("$Silent$");
-                            switch (dc.type)
-                            {
-                                case 1://普通动态
-                                case 2://包含图片的动态
-                                case 4://？出现在转发和普通动态
-                                    if (dc.card_origin["author"].Value<long>("mid") != dyn.uid)
-                                    {
-                                        MainHolder.broadcaster.BroadcastToAdminGroup("[转发他人动态]\nUP主:" + dc.sender.name + "\n原UP主：" + dc.card_origin["author"].Value<string>("name") + "\nhttps://t.bilibili.com/" + dc.dynid + "\n<按策略不推送>");
+                                if ((DateTime.Now - dc.sendtime).TotalSeconds > 30)
+                                {
+                                    continue;
+                                }
+                                bool atall = (DateTime.Now.Hour < 23 && DateTime.Now.Hour > 6);
+                                atall &= !dc.dynamic.Contains("$Silent$");
+                                switch (dc.type)
+                                {
+                                    case 1://普通动态
+                                    case 2://包含图片的动态
+                                    case 4://？出现在转发和普通动态
+                                        if (dc.card_origin["author"].Value<long>("mid") != dyn.uid)
+                                        {
+                                            MainHolder.broadcaster.BroadcastToAdminGroup("[转发他人动态]\nUP主:" + dc.sender.name + "\n原UP主：" + dc.card_origin["author"].Value<string>("name") + "\nhttps://t.bilibili.com/" + dc.dynid + "\n<按策略不推送>");
+                                            break;
+                                        }
+                                        if (isLivedanmakuAndBroadcast(dc))
+                                        {
+                                            break; //如果是转发的直播，分出去单独处理
+                                        }
+                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IChatMessage)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
                                         break;
-                                    }
-                                    if (isLivedanmakuAndBroadcast(dc))
-                                    {
-                                        break; //如果是转发的直播，分出去单独处理
-                                    }
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新动态！]\nUP主:" + dc.sender.name + "\n" + dc.short_dynamic + "\nhttps://t.bilibili.com/" + dc.dynid, atall ? (IChatMessage)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
-                                    break;
-                                case 256://音频
-                                    break;
-                                case 8://视频
-                                    MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IChatMessage)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
-                                    break;
-                                case 4200://直播
-                                    break;
-                                default:
-                                    break;
+                                    case 256://音频
+                                        break;
+                                    case 8://视频
+                                        MainHolder.broadcaster.BroadcastToAllGroup("[有新视频！]\n" + dc.vinfo.title + "\nUP主:" + dc.sender.name + "\n" + dc.vinfo.short_discription + "\nhttps://www.bilibili.com/video/" + dc.vinfo.bvid + "\n", atall ? (IChatMessage)new AtAllMessage() : new PlainMessage("<@[免打扰模式]>"));
+                                        break;
+                                    case 4200://直播
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            catch (Exception err)
+                            {
+                                string vardump = dc.Dump();
+                                string UUID = Guid.NewGuid().ToString();
+                                MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n此子模块因发生预期之内的错误，在一个预设调试点断下。\n" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace);
+                                MainHolder.broadcaster.BroadcastToAdminGroup("[VarDump]\n此次错误包含一个小型状态快照，请使用以下信息调试：\nRayId=" + UUID);
+                                MainHolder.broadcaster.SendToAnEgg("[VarDump]\nRayId=" + UUID + "\n" + vardump);
                             }
                         }
                     }
@@ -97,7 +108,7 @@ namespace tech.msgp.groupmanager.Code
                 }
                 try
                 {//检测鹿野
-                        if(MainHolder.enableNativeFuncs) check_fans();
+                    if (MainHolder.enableNativeFuncs) check_fans();
                 }
                 catch (Exception err)
                 {
@@ -116,7 +127,7 @@ namespace tech.msgp.groupmanager.Code
                 {
                     int fans = jb1["data"].Value<int>("follower");
                     if ((!DataBase.me.isCountAlreadyRiched(fans)) || (debug))//新达成或在de
-                       {
+                    {
                         List<int> ur_fancount = DataBase.me.listUnachievedCount();
                         int fcr = int.MaxValue;
                         foreach (int fc in ur_fancount)

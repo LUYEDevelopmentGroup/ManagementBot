@@ -12,6 +12,7 @@ using tech.msgp.groupmanager.Code.ScriptHandler;
 using Mirai.CSharp.HttpApi.Models.EventArgs;
 using Mirai.CSharp.HttpApi.Models.ChatMessages;
 using Mirai.CSharp.HttpApi.Session;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace tech.msgp.groupmanager.Code
 {

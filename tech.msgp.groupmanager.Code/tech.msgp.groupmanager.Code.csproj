@@ -1,42 +1,49 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<Platforms>AnyCPU;x64</Platforms>
+		<AssemblyVersion>23.1.28.42</AssemblyVersion>
+		<FileVersion>23.1.28.42</FileVersion>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="Event_GroupMemberIncrease.cs" />
+		<Compile Remove="Event_GroupMemberLeave.cs" />
+		<Compile Remove="Event_GroupMemberRequest.cs" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Event_GroupMemberIncrease.cs" />
-    <Compile Remove="Event_GroupMemberLeave.cs" />
-    <Compile Remove="Event_GroupMemberRequest.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Mirai-CSharp.NativeAssets.Linux" Version="1.0.2" />
+		<PackageReference Include="MySql.Data" Version="8.0.31" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="ObjectDumper.NET" Version="3.5.2" />
+		<PackageReference Include="System.Drawing.Common" Version="5.0.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Mirai-CSharp.NativeAssets.Linux" Version="1.0.2" />
-    <PackageReference Include="MySql.Data" Version="8.0.23" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\BiliApi.Net\BiliApi.csproj" />
+		<ProjectReference Include="..\BiliveDanmakuAgent\BiliveDanmakuAgent.csproj" />
+		<ProjectReference Include="..\BroadTicketUtility\BroadTicketUtility.csproj" />
+		<ProjectReference Include="..\Mirai-CSharp\Mirai-CSharp.HttpApi\Mirai-CSharp.HttpApi.csproj" />
+		<ProjectReference Include="..\Mirai-CSharp\Mirai-CSharp\Mirai-CSharp.csproj" />
+		<ProjectReference Include="..\QLogin\QLogin.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BiliApi.Net\BiliApi.csproj" />
-    <ProjectReference Include="..\BiliveDanmakuAgent\BiliveDanmakuAgent.csproj" />
-    <ProjectReference Include="..\BroadTicketUtility\BroadTicketUtility.csproj" />
-    <ProjectReference Include="..\QLogin\QLogin.csproj" />
-    <ProjectReference Include="C:\Users\dengb\source\repos\Mirai-CSharp\Mirai-CSharp.HttpApi\Mirai-CSharp.HttpApi.csproj" />
-    <ProjectReference Include="C:\Users\dengb\source\repos\Mirai-CSharp\Mirai-CSharp\Mirai-CSharp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.Targets" Version="5.0.0" PrivateAssets="all" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NETCore.Targets" Version="5.0.0" PrivateAssets="all" />
+	</ItemGroup>
 
 </Project>

@@ -19,11 +19,12 @@ using Mirai.CSharp.HttpApi.Parsers;
 using Mirai.CSharp.HttpApi.Models.EventArgs;
 using Mirai.CSharp.HttpApi.Handlers;
 using Mirai.CSharp.HttpApi.Session;
+using BiliApi.BiliPrivMessage;
 
 namespace tech.msgp.groupmanager.Code.EventHandlers
 {
     [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<IFriendMessageEventArgs, FriendMessageEventArgs>))]
-    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<ITempMessageEventArgs,TempMessageEventArgs>))]
+    [RegisterMiraiHttpParser(typeof(DefaultMappableMiraiHttpMessageParser<ITempMessageEventArgs, TempMessageEventArgs>))]
     public partial class EventHandler : IMiraiHttpMessageHandler<IFriendMessageEventArgs>, IMiraiHttpMessageHandler<ITempMessageEventArgs>
     {
         static Dictionary<long, List<long>> me_user_tmp = new Dictionary<long, List<long>>();
@@ -36,10 +37,9 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
         {
             try
             {
-                /*
                 if (msgtext.IndexOf("#") != 0)
                 {
-                    try
+                    /*try
                     {
                         var ticket = BroadTicketUtility.TicketCoder.Decode(msgtext);
                         long qq = DataBase.me.getUserBoundedQQ(ticket.Data.Uid);
@@ -68,10 +68,10 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                         }
                         return;
                     }
-                    catch { }
+                    catch { }*/
                     MainHolder.broadcaster.SendToAnEgg(msgtext);
                 }
-                else*/
+                else
                 {//是一条指令
                     try
                     {
@@ -242,6 +242,19 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                                 break;
                             case "#cape":
                             case "#披风":
+                                break;
+                            case "#激活码":
+                                {
+                                    var resultmsg = MainHolder.codeclaimer.Check(rep.qq,out bool success);
+                                    rep.reply(resultmsg);
+                                    //MainHolder.session.SendFriendMessageAsync(rep.qq, new PlainMessage(resultmsg));
+                                    if (success)
+                                    {
+                                        //long uid = DataBase.me.getUserBoundedUID(rep.qq);
+                                        //PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);
+                                        //session.sendMessage(resultmsg);
+                                    }
+                                }
                                 break;
                             default:
                                 break;

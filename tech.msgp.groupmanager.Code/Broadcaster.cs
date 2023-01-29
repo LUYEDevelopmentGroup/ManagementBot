@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -67,6 +68,7 @@ namespace tech.msgp.groupmanager.Code
 
         public bool SendToGroup(long group, IChatMessage[] msg)
         {
+            Thread.Sleep(1000);
             MainHolder.session.SendGroupMessageAsync(group, msg).Wait();
             return true;
         }
@@ -119,6 +121,7 @@ namespace tech.msgp.groupmanager.Code
         {
             if (MainHolder.friends.Contains(qq))
             {//好友
+                Thread.Sleep(1000);
                 MainHolder.session.SendFriendMessageAsync(qq, message).Wait();
                 return true;
             }
@@ -127,6 +130,7 @@ namespace tech.msgp.groupmanager.Code
                 List<long> th_group = DataBase.me.whichGroupsAreTheUserIn(qq);
                 if (th_group.Count > 0)
                 {
+                    Thread.Sleep(1000);
                     MainHolder.session.SendTempMessageAsync(qq, th_group[0], message);
                     return true;
                 }
@@ -139,12 +143,14 @@ namespace tech.msgp.groupmanager.Code
 
         public bool SendToQQ(long qq, IChatMessage[] message, long tg)
         {
+            Thread.Sleep(1000);
             MainHolder.session.SendTempMessageAsync(qq, tg, message);
             return true;
         }
 
         public bool SendToQQ(long qq, string msg, long tg)
         {
+            Thread.Sleep(1000);
             MainHolder.session.SendTempMessageAsync(qq, tg, new PlainMessage(msg));
             return true;
         }

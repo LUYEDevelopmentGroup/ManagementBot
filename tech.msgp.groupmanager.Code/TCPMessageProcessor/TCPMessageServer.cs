@@ -164,7 +164,7 @@ namespace tech.msgp.groupmanager.Code.TCPMessageProcessor
                                 {//初始化舰长群数据
                                     qqname_index.Clear();
                                     qqgname_index.Clear();
-                                    Dictionary<int, long> l = DataBase.me.listCrewBound();
+                                    Dictionary<long, long> l = DataBase.me.listCrewBound();
                                     List<long> g = DataBase.me.getCrewGroup();
                                     foreach (long gg in g)
                                     {

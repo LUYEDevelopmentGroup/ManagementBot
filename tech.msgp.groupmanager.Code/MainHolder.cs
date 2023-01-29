@@ -29,6 +29,7 @@ namespace tech.msgp.groupmanager.Code
         public static List<BiliSpaceDynamic> dynamics = new List<BiliSpaceDynamic>();
         public static Broadcaster broadcaster;
         public static BiliDanmakuProcessor bilidmkproc;
+        public static ActivationCodeClaimer codeclaimer;
         public static List<long> issending = new List<long>();
         public static TCPMessageServer tms;
         public static int MsgCount;
@@ -264,6 +265,8 @@ namespace tech.msgp.groupmanager.Code
                 {
                     MainHolder.logger("SideLoad", "BLive-DMKReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                 }
+
+                codeclaimer = new ActivationCodeClaimer();
                 try
                 {
                     if (MainHolder.useBiliRecFuncs)
@@ -276,8 +279,10 @@ namespace tech.msgp.groupmanager.Code
                         MainHolder.logger("SideLoad", "BiliPrivMessageReceiver is DISABLED.", ConsoleColor.Black, ConsoleColor.White);
                     }
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
+                    MainHolder.logger("PrivMsgRecv", err.Message, ConsoleColor.Black, ConsoleColor.Red);
+                    MainHolder.logger("PrivMsgRecv", err.StackTrace, ConsoleColor.Yellow, ConsoleColor.Black);
                     MainHolder.logger("SideLoad", "BiliPrivMessageReceiver FAILED.", ConsoleColor.Black, ConsoleColor.Red);
                 }
                 try
@@ -389,7 +394,7 @@ namespace tech.msgp.groupmanager.Code
 
         public static void checkCrewGroup()
         {
-            Dictionary<int, long> l = DataBase.me.listCrewBound();
+            Dictionary<long, long> l = DataBase.me.listCrewBound();
             List<long> g = DataBase.me.getCrewGroup();
             List<long> crews = new List<long>();
             string msg = "";
@@ -401,7 +406,7 @@ namespace tech.msgp.groupmanager.Code
                     crews.Add(ginfo.Id);
                 }
             }
-            foreach (KeyValuePair<int, long> kvp in l)
+            foreach (KeyValuePair<long, long> kvp in l)
             {
                 if (!crews.Contains(kvp.Value))
                 {
@@ -432,7 +437,7 @@ namespace tech.msgp.groupmanager.Code
             return "127.0.0.1";
         }
 
-        public static void DumpException(Exception err,string cato="EXCEPTION")
+        public static void DumpException(Exception err, string cato = "EXCEPTION")
         {
             logger(cato, err.Message);
             logger(cato, err.StackTrace);

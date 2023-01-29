@@ -360,6 +360,51 @@ namespace tech.msgp.groupmanager.Code
             return execsql("INSERT INTO bili_crew (uid, len, level, lid, timestamp) VALUES (@uid, @len, @level, @lid, NOW());", args);
         }
 
+        /// <summary>
+        /// 获取池中的一个激活码，将其标记为已被领取
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <returns></returns>
+        public string GetActivationCode(long uid)
+        {
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            List<int> vs = new List<int>
+            {
+                0,
+                1,
+                2
+            };
+
+            args.Add("@uid", uid.ToString());
+
+            List<List<string>> re = querysql("SELECT * from activation_codes where claimer = @uid ORDER BY id DESC LIMIT 0,1 ;", args, vs); //已为该用户分配过code
+            if (re.Count == 0)
+            {
+                re = querysql("SELECT * from activation_codes where claimer = 0 ORDER BY id LIMIT 0,1 ;", args, vs);//分配新的code
+                if (re.Count == 0) throw new Exception("激活码耗尽");
+                args.Add("@id", re.LastOrDefault()[0]);
+                execsql("UPDATE activation_codes SET claimer = @uid WHERE id = @id ;", args);
+            }
+            var item = re.LastOrDefault();
+            return item[1];
+        }
+        public string GetCodeTempalate()
+        {
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            List<int> vs = new List<int>
+            {
+                1
+            };
+
+            List<List<string>> re = querysql("SELECT * from activation_codes where claimer = '-1' ORDER BY id LIMIT 0,1 ;", args, vs); //已为该用户分配过code
+            if (re.Count == 0)
+            {
+                return "{CODE}";
+            }
+            var item = re.LastOrDefault();
+            return item[0];
+        }
+
         public bool recUserBuyGuard(long uid, int len, int level, int lid, DateTime time)
         {
             Dictionary<string, object> args = new Dictionary<string, object>
@@ -1277,7 +1322,7 @@ namespace tech.msgp.groupmanager.Code
             return group;
         }
 
-        public Dictionary<int, long> listCrewBound()
+        public Dictionary<long, long> listCrewBound()
         {
             Dictionary<string, object> args = new Dictionary<string, object>();
             List<int> vs = new List<int>
@@ -1286,10 +1331,10 @@ namespace tech.msgp.groupmanager.Code
                 1
             };
             List<List<string>> re = querysql("SELECT * from bili_qqbound where qq is not null and type like 1;", args, vs);
-            Dictionary<int, long> group = new Dictionary<int, long>();
+            Dictionary<long, long> group = new Dictionary<long, long>();
             foreach (List<string> line in re)
             {
-                group.Add(int.Parse(line[0]), long.Parse(line[1]));
+                group.Add(long.Parse(line[0]), long.Parse(line[1]));
             }
             return group;
         }

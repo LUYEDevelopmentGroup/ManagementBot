@@ -22,6 +22,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             if (DataBase.me.isUserBlacklisted(e.FromQQ))
             {
                 MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 存在于黑名单中，自动拒绝。");
+                await Task.Delay(1000);
                 await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您被设置不能加入任何粉丝群。");
                 return;
             }
@@ -35,6 +36,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                     MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 受到永久信任，同意入群。");
                     goto case 9;//显式允许直接进入下一个case
                 case 9:
+                    await Task.Delay(3000);
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
                     return;
             }
@@ -51,6 +53,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                 if (qqlevel < 0)
                 {
                     MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 等级查询失败(try3,2s,try3),已提示重新申请");
+                    await Task.Delay(3000);
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "等级查询失败,请重新申请入群");
                     return;
                 }
@@ -58,6 +61,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                 if (qqlevel < 16)
                 {
                     MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 等级过低(" + qqlevel + "<16), 拒绝");
+                    await Task.Delay(3000);
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您的QQ等级过低, 如有疑问请联系管理");
                     return;
                 }
@@ -71,17 +75,20 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                     var uid = DataBase.me.getUserBoundedUID(e.FromQQ);
                     if (DataBase.me.isBiliUserGuard(uid))
                     {
+                        await Task.Delay(3000);
                         await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Allow);
                         MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群(" + qqlevel + ">=16)\n是舰长，同意");
                     }
                     else
                     {
+                        await Task.Delay(3000);
                         await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "没有您的大航海数据，如有疑问请联系管理。");
                         MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n不是舰长，拒绝");
                     }
                 }
                 else
                 {
+                    await Task.Delay(3000);
                     await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您的QQ没有绑定任何UID，如有疑问请联系管理。");
                     MainHolder.broadcaster.BroadcastToAdminGroup(e.FromQQ + "\n！正在加入舰长群\n未知QQ，拒绝");
                 }
@@ -89,7 +96,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
             }
             else
             {
-                {
+                /*{
                     var groups = DataBase.me.whichGroupsAreTheUserIn(e.FromQQ);
                     if (groups.Count > 1)
                     {
@@ -100,10 +107,11 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                         }
                         MainHolder.broadcaster.BroadcastToAdminGroup(e.NickName + "(" + e.FromQQ + ") 加入群  " +
                             e.FromGroupName + "(" + e.FromGroup + ") \n，自动拒绝。\n该用户同时加入以下群聊：\n" + gps);
+                        await Task.Delay(3000);
                         await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "已加入其它粉丝群 如有疑问请联系管理");
                         return;
                     }
-                }
+                }*/
                 {
                     var groups = DataBase.me.listGroup();
                     string ins = "";
@@ -124,6 +132,7 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("入群的用户 " + e.NickName + "(" + e.FromQQ + ") 已经加入以下群：\n"
                             + ins + "\n拒绝。");
+                        await Task.Delay(3000);
                         await MainHolder.session.HandleGroupApplyAsync(e, GroupApplyActions.Deny, "您已加入其它平级粉丝群，不可重复加群");
                         return;
                     }

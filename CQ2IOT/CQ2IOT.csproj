@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyVersion>23.1.22.1</AssemblyVersion>
+    <FileVersion>23.1.22.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

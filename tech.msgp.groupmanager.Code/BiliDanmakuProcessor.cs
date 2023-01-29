@@ -22,7 +22,7 @@ namespace tech.msgp.groupmanager.Code
         //int actviewers = 0;
         private int selver_coins = 0;
         private int gold_coins = 0;
-        private readonly int streamer_id = 5659864;
+        private readonly long streamer_id = 5659864;
         private readonly Dictionary<string, string> crews = new Dictionary<string, string>();
         private readonly List<long> viewerlist = new List<long>();
         private string cookiestr;
@@ -159,8 +159,20 @@ namespace tech.msgp.groupmanager.Code
             new_commers = 0;
             viewerlist.Clear();
             lid = -1;
-            MainHolder.checkCrewGroup();
-            ListTenMoreGradeUsers();
+            //MainHolder.checkCrewGroup();
+            //ListTenMoreGradeUsers();
+            if (PrivmessageChecker.pendingUnderlevelQQ.Count() > 0)
+            {
+                string msg = "[直播结束]\n存在以下因等级不足无法进群的舰长需要加好友：\n";
+                foreach (long qq in PrivmessageChecker.pendingUnderlevelQQ)
+                {
+                    msg += qq + "\n";
+                }
+                msg += "等级大于16级的舰长不在此列表中。";
+                MainHolder.broadcaster.SendToQQ(1249695750, msg, 1047079635);
+                MainHolder.broadcaster.SendToAnEgg(msg);
+                PrivmessageChecker.pendingUnderlevelQQ.Clear();
+            }
         }
 
         public static void ListTenMoreGradeUsers()
@@ -403,7 +415,7 @@ namespace tech.msgp.groupmanager.Code
             });
         }
 
-        public static int GetMedalLevelMatchUID(int streamer_uid, JObject json)
+        public static int GetMedalLevelMatchUID(long streamer_uid, JObject json)
         {
             if (json["info"][3].Count() < 1)
             {
@@ -411,7 +423,7 @@ namespace tech.msgp.groupmanager.Code
             }
 
             int level = int.Parse(json["info"][3][0].ToString());
-            int uid = int.Parse(json["info"][3][12].ToString());
+            long uid = long.Parse(json["info"][3][12].ToString());
             if (streamer_uid == uid)
             {
                 return level;
@@ -436,9 +448,10 @@ namespace tech.msgp.groupmanager.Code
 
         public static bool SendKeyToCrewMember(long uid, int length, int crewlevel, int timestamp, string clevel, bool isnew)
         {
-            string token = CrewKeyProcessor.getToken(uid, length, crewlevel, timestamp);
+            //string token = CrewKeyProcessor.getToken(uid, length, crewlevel, timestamp);
             PrivMessageSession session = PrivMessageSession.openSessionWith(uid, MainHolder.biliapi);
             bool succeed = true;
+            var rep = MainHolder.codeclaimer.CheckWhenBuy(uid, out bool succ);
             if (isnew)
             {
                 if (!DataBase.me.isUserBoundedQQ(uid))
@@ -450,7 +463,7 @@ namespace tech.msgp.groupmanager.Code
                     }
                     //succeed = succeed && session.sendMessage("欢迎新" + clevel + "上船！成为船员您可以加入舰长群，并有机会获得小礼品。请妥善保管下面的凭证，在系统出错时它将能证明您的船员身份。");
                     //succeed = succeed && session.sendMessage(token);
-                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号并协助您加入舰长群。【请回复纯数字，该系统无人值守，私信由软件接收】");
+                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号并协助您加入舰长群、获取更多福利。【请回复纯数字，该系统无人值守，私信由软件接收】\n" + rep);
                     DataBase.me.addBiliPending(uid);
                     MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信询问QQ    新·" + clevel);
                 }
@@ -465,12 +478,12 @@ namespace tech.msgp.groupmanager.Code
                         MainHolder.broadcaster.BroadcastToAdminGroup("操作未能执行：约束条件[MainHolder.useBiliRecFuncs=False]不允许以下操作：\n发送B站私信");
                         return false;
                     }
-                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号【请回复纯数字，该系统无人值守，私信由软件接收】");
+                    succeed = succeed && session.sendMessage("能告诉我您的QQ号吗？我将为您绑定QQ号并协助您加入舰长群、获取更多福利。【请回复纯数字，该系统无人值守，私信由软件接收】\n" + rep);
                     DataBase.me.addBiliPending(uid);
                     MainHolder.broadcaster.BroadcastToAdminGroup("已通过B站私信询问QQ     续航·" + clevel);
                 }
             }
-            Commands.SendTicket(uid, crewlevel);
+            //Commands.SendTicket(uid, crewlevel);
             return succeed;
         }
 

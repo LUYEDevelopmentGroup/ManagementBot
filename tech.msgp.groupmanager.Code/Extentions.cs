@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,11 @@ namespace tech.msgp.groupmanager.Code
                 if (item.Equals(key)) { return true; }
             }
             return false;
+        }
+
+        public static string Dump<T>(this T var)
+        {
+            return ObjectDumper.Dump(var, DumpStyle.Console);
         }
     }
 }

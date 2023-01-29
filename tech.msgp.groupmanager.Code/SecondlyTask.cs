@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using BiliApi;
 
 namespace tech.msgp.groupmanager.Code
@@ -40,13 +41,14 @@ namespace tech.msgp.groupmanager.Code
                 {
                     counter++;
                     if (counter % 600 == 0)
-                    {//5分钟一次
+                    {//10分钟一次
                         GC.Collect(5, GCCollectionMode.Optimized, true, true);
                         if (!MainHolder.bililogin.IsOnline())
                         {
                             MainHolder.broadcaster.BroadcastToAdminGroup("BiliWebToken似乎已经失效，将触发重新登录。\n");
                             MainHolder.doBiliLogin = true;
                         }
+                        Task.Run(MainHolder.codeclaimer.UpdateClaimerId);
                     }
                     if (counter % 3600 == 0)
                     {//一小时执行一次
