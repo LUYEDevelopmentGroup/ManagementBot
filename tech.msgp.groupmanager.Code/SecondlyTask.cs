@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BiliApi;
+using tech.msgp.groupmanager.Code.FunctionMods;
 
 namespace tech.msgp.groupmanager.Code
 {
@@ -68,7 +69,8 @@ namespace tech.msgp.groupmanager.Code
                     }
                     if (counter % (60 * 60 * 12) == 0)
                     {//12小时一次
-                        MainHolder.checkCrewGroup();
+                        //MainHolder.checkCrewGroup();
+                        _ = NameUpdater.UpdateAllNames();
                     }
                     if ((counter + (60 * 60 * 6)) % (60 * 60 * 12) == 0)
                     {//12小时一次，错位+6小时      帮小伙伴续费黑名单>_<

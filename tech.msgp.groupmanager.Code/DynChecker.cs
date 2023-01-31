@@ -93,7 +93,7 @@ namespace tech.msgp.groupmanager.Code
                             }
                             catch (Exception err)
                             {
-                                string vardump = dc.Dump();
+                                string vardump = dc.Dump(DumpStyle.Console);
                                 string UUID = Guid.NewGuid().ToString();
                                 MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n此子模块因发生预期之内的错误，在一个预设调试点断下。\n" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace);
                                 MainHolder.broadcaster.BroadcastToAdminGroup("[VarDump]\n此次错误包含一个小型状态快照，请使用以下信息调试：\nRayId=" + UUID);

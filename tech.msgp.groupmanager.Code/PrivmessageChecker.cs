@@ -11,7 +11,7 @@ namespace tech.msgp.groupmanager.Code
     internal class PrivmessageChecker
     {
         public static PrivSessionManager man;
-        private static Bitmap QunQRCode;
+        public static Bitmap QunQRCode;
         public static bool BlockReceiver = false;
         public static bool DropMessages = false;
         public static List<long> pendingUnderlevelQQ = new List<long>();
@@ -147,7 +147,7 @@ namespace tech.msgp.groupmanager.Code
                     {
                         MainHolder.broadcaster.BroadcastToAdminGroup("[Exception]\n下面的信息用来帮助鸡蛋定位错误，管理不必在意。\n[B站私信部分_外循环]" + err.Message + "\n\n堆栈跟踪：\n" + err.StackTrace + "\n-= Func Failure =-");
                     }
-                    Thread.Sleep(60 * 1000);
+                    Thread.Sleep(5 * 1000);
                 }
             }
             catch (Exception err)

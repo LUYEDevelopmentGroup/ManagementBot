@@ -80,9 +80,9 @@ namespace tech.msgp.groupmanager.Code.EventHandlers
                                 break;
                         }
                         MainHolder.broadcaster.SendToGroup(groupId, "欢迎" + dpword + "<" + bu.name + ">加入舰长群！");
-                        IGroupMemberCardInfo iginfo = new GroupMemberCardInfo("*" + dpword + " " + bu.name, null);
+                        IGroupMemberCardInfo iginfo = new GroupMemberCardInfo("*" + bu.name, null);
                         await MainHolder.session.ChangeGroupMemberInfoAsync(qq, groupId, iginfo);
-                        MainHolder.broadcaster.SendToQQ(qq, "欢迎来到舰长群，感谢您对奶狗狗的支持！请认准鹿野QQ(1249695750)，可通过舰长群私聊鹿野获取好友位哦\n您的QQ号已和Bilibili账号<" + bu.name + ">绑定，如有疑问请联系鸡蛋🥚(这套系统的开发者，QQ号1250542735)");
+                        MainHolder.broadcaster.SendToQQ(qq, "欢迎来到舰长群，感谢您对奶狗狗的支持！请认准鹿野QQ(1249695750)，可通过舰长群私聊鹿野获取好友位哦\n您的QQ号已和Bilibili账号<" + bu.name + ">绑定，该账号的昵称会自动设置为您的群昵称。若不希望机器人再修改您的群昵称，请删除昵称前的'*'号。\n对上述信息有疑问请联系鸡蛋🥚(这套系统的开发者，QQ号1250542735)");
                         psession.sendMessage("您已经成功加入了舰长群。感谢您对大总攻(XNG)的支持！");
                     }
                 }

@@ -13,12 +13,14 @@ using Mirai.CSharp.HttpApi.Models.EventArgs;
 using Mirai.CSharp.HttpApi.Models.ChatMessages;
 using Mirai.CSharp.HttpApi.Session;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using tech.msgp.groupmanager.Code.FunctionMods;
 
 namespace tech.msgp.groupmanager.Code
 {
     internal class Commands
     {
         public static string stagename = "summer";
+        private static Random rnd = new Random();
 
         private static string[] bannedKeywords = { "open(", "import", "system(", "exec", "eval", "input", "read",
         "sleep","delay","while","write","stream"};
@@ -637,9 +639,25 @@ namespace tech.msgp.groupmanager.Code
                                 PrivmessageChecker.BlockReceiver = !PrivmessageChecker.BlockReceiver;
                                 MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[调试 - 阻断私信处理]" + (PrivmessageChecker.BlockReceiver ? "是" : "否"));
                                 break;
+                            case "#uidcode":
+                            case "#验证码":
+                                {
+                                    long uidd = long.Parse(cmd[1]);
+                                    var bs = PrivMessageSession.openSessionWith(uidd, MainHolder.biliapi);
+                                    var code = rnd.Next(100000, 999999);
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[验证码]\n管理员发起验证，正确的验证码为："+ code+"\n此验证码已被发送至<UID:"+uidd+">的B站私信，询问其验证码并与此正确代码核对。");
+                                    bs.sendMessage("[验证码]\n验证码："+ code + "\n此次验证由<"+e.Sender.Name+">发起。如果您不在与此管理组成员沟通，请不要向对方提供验证码。");
+                                }
+                                break;
                             case "#boundqq":
-                                var result = DataBase.me.boundBiliWithQQ(long.Parse(cmd[1]), long.Parse(cmd[2]));
-                                MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[手动QQ绑定]\n" + (result ? "OK" : "不OK"));
+                                {
+                                    var result = DataBase.me.boundBiliWithQQ(long.Parse(cmd[1]), long.Parse(cmd[2]));
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "[手动QQ绑定]\n" + (result ? "OK" : "不OK"));
+                                    var bs = PrivMessageSession.openSessionWith(long.Parse(cmd[1]), MainHolder.biliapi);
+                                    bs.sendMessage("[自动回复] 管理员已将您当前账号绑定到QQ:" + long.Parse(cmd[2]) + "。\n此QQ将可以以您的身份领取相关福利。如果这不是你的QQ，请立即换绑！\n" +
+                                                    "如需帮助，请联系鸡蛋(QQ1250542735)");
+                                    bs.SendImage(PrivmessageChecker.QunQRCode);
+                                }
                                 break;
                             /*
                         case "#cape":
@@ -799,7 +817,13 @@ namespace tech.msgp.groupmanager.Code
                             case "#regen_crew_timeline":
                                 {
                                     int count = CrewChecker.RegenerateCrewTimeline();
-                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "已重整时间线：读入"+count+"条舰长记录");
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "已重整时间线：读入" + count + "条舰长记录");
+                                }
+                                break;
+                            case "#crewsync":
+                                {
+                                    MainHolder.broadcaster.SendToGroup(e.Sender.Group.Id, "开始同步舰长ID");
+                                    _ = NameUpdater.UpdateAllNames();
                                 }
                                 break;
                             default:

@@ -4,8 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
-    <AssemblyVersion>23.1.28.43</AssemblyVersion>
-    <FileVersion>23.1.28.43</FileVersion>
+    <AssemblyVersion>23.1.31.51</AssemblyVersion>
+    <FileVersion>23.1.31.51</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
